@@ -24,7 +24,7 @@ export async function onRequestGet({request,env}){
   attempt=await expireIfNeeded(env,attempt);
   const q=await env.DB.prepare("SELECT q.id,q.question_text,q.question_type,q.options_json,q.points,q.sort_order,an.answer_text FROM questions q LEFT JOIN answers an ON an.question_id=q.id AND an.attempt_id=? WHERE q.exam_id=? ORDER BY q.sort_order,q.id").bind(id,attempt.exam_id).all();
   const now=Date.now(),deadline=Math.min(parseSqliteUtc(attempt.started_at)+Number(attempt.duration_minutes)*60000,attempt.closes_at?Date.parse(String(attempt.closes_at).replace(" ","T")+"Z"):Infinity);
-  return json({attempt:{id:attempt.id,exam_id:attempt.exam_id,exam_title:attempt.exam_title,started_at:attempt.started_at,status:attempt.status,deadline:new Date(deadline).toISOString(),remaining_seconds:Math.max(0,Math.floor((deadline-now)/1000))},questions:(q.results||[]).map(x=>({...x,options: x.options_json?JSON.parse(x.options_json):[]}))});
+  return json({attempt:{id:attempt.id,exam_id:attempt.exam_id,exam_title:attempt.exam_title,started_at:attempt.started_at,status:attempt.status,results_visible:Number(attempt.results_visible)===1,score:(Number(attempt.results_visible)===1&&attempt.status==="graded"&&attempt.score!==null)?Number(attempt.score):null,deadline:new Date(deadline).toISOString(),remaining_seconds:Math.max(0,Math.floor((deadline-now)/1000))},questions:(q.results||[]).map(x=>({...x,options: x.options_json?JSON.parse(x.options_json):[]}))});
 }
 export async function onRequestPost({request,env}){
   const student=await requireStudent(request,env);
