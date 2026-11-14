@@ -1,11 +1,12 @@
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
+const PASSWORD_ITERATIONS = 100000;
 export const json = (body, status = 200, headers = {}) => new Response(JSON.stringify(body), {
   status, headers: { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff", ...headers }
 });
 export function b64url(bytes) {
   let s = ""; for (const b of bytes) s += String.fromCharCode(b);
-  return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/g,"");
+  return btoa(s).replace(/\\+/g,"-").replace(/\\//g,"_").replace(/=+$/g,"");
 }
 export function unb64url(s) {
   const raw = atob(s.replace(/-/g,"+").replace(/_/g,"/") + "=".repeat((4-s.length%4)%4));
@@ -33,18 +34,29 @@ export async function readSession(request, cookieName, secret) {
     return data;
   } catch { return null; }
 }
-export async function hashPassword(password) {
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  const key = await crypto.subtle.importKey("raw", encoder.encode(password), "PBKDF2", false, ["deriveBits"]);
-  const bits = new Uint8Array(await crypto.subtle.deriveBits({name:"PBKDF2",salt,iterations:310000,hash:"SHA-256"},key,256));
-  return "pbkdf2$310000$"+b64url(salt)+"$"+b64url(bits);
+
+// Workers limits native PBKDF2 to 100,000 iterations. A server-side HMAC pepper
+// prevents database-only attackers from verifying guesses without SESSION_SECRET.
+async function passwordMaterial(password, pepper) {
+  if (typeof pepper !== "string" || pepper.length < 32) throw new Error("Password pepper is not configured securely.");
+  const key = await hmacKey(pepper,["sign"]);
+  return new Uint8Array(await crypto.subtle.sign("HMAC",key,encoder.encode("admin-password-v1:" + password)));
 }
-export async function verifyPassword(password, stored) {
+export async function hashPassword(password, pepper) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const material = await passwordMaterial(password,pepper);
+  const key = await crypto.subtle.importKey("raw",material,"PBKDF2",false,["deriveBits"]);
+  const bits = new Uint8Array(await crypto.subtle.deriveBits({name:"PBKDF2",salt,iterations:PASSWORD_ITERATIONS,hash:"SHA-256"},key,256));
+  return "pbkdf2$"+PASSWORD_ITERATIONS+"$"+b64url(salt)+"$"+b64url(bits);
+}
+export async function verifyPassword(password, stored, pepper) {
   try {
-    const [kind, iterations, saltText, hashText] = stored.split("$");
-    if (kind !== "pbkdf2" || Number(iterations) < 200000) return false;
-    const key = await crypto.subtle.importKey("raw", encoder.encode(password), "PBKDF2", false, ["deriveBits"]);
-    const bits = new Uint8Array(await crypto.subtle.deriveBits({name:"PBKDF2",salt:unb64url(saltText),iterations:Number(iterations),hash:"SHA-256"},key,256));
+    const [kind, iterationsText, saltText, hashText] = stored.split("$");
+    const iterations = Number(iterationsText);
+    if (kind !== "pbkdf2" || iterations !== PASSWORD_ITERATIONS || !saltText || !hashText) return false;
+    const material = await passwordMaterial(password,pepper);
+    const key = await crypto.subtle.importKey("raw",material,"PBKDF2",false,["deriveBits"]);
+    const bits = new Uint8Array(await crypto.subtle.deriveBits({name:"PBKDF2",salt:unb64url(saltText),iterations,hash:"SHA-256"},key,256));
     const expected = unb64url(hashText);
     if (bits.length !== expected.length) return false;
     let diff=0; for(let i=0;i<bits.length;i++) diff |= bits[i]^expected[i];
