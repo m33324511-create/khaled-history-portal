@@ -7,9 +7,9 @@ async function getAttempt(env,id,studentId){
 async function expireIfNeeded(env,a){
   if(a.status!=="in_progress")return a;
   const deadline=parseSqliteUtc(a.started_at)+Number(a.duration_minutes)*60000;
-  const close=a.closes_at?Date.parse(String(a.closes_at).replace(" ","T")+"Z"):Infinity;
+  const close=a.closes_at?parseSqliteUtc(a.closes_at):Infinity;
   if(Date.now()>=Math.min(deadline,close)){
-    await env.DB.prepare("UPDATE attempts SET status='expired',submitted_at=CURRENT_TIMESTAMP WHERE id=? AND status='in_progress'").bind(a.id).run();
+    await env.DB.prepare("UPDATE attempts SET status='expired',submitted_at=CURRENT_TIMESTAMP,score=(SELECT COALESCE(SUM(awarded_points),0) FROM answers WHERE attempt_id=?) WHERE id=? AND status='in_progress'").bind(a.id,a.id).run();
     return {...a,status:"expired"};
   }
   return a;
@@ -23,7 +23,7 @@ export async function onRequestGet({request,env}){
   if(!attempt)return json({message:"المحاولة غير موجودة."},404);
   attempt=await expireIfNeeded(env,attempt);
   const q=await env.DB.prepare("SELECT q.id,q.question_text,q.question_type,q.options_json,q.points,q.sort_order,an.answer_text FROM questions q LEFT JOIN answers an ON an.question_id=q.id AND an.attempt_id=? WHERE q.exam_id=? ORDER BY q.sort_order,q.id").bind(id,attempt.exam_id).all();
-  const now=Date.now(),deadline=Math.min(parseSqliteUtc(attempt.started_at)+Number(attempt.duration_minutes)*60000,attempt.closes_at?Date.parse(String(attempt.closes_at).replace(" ","T")+"Z"):Infinity);
+  const now=Date.now(),deadline=Math.min(parseSqliteUtc(attempt.started_at)+Number(attempt.duration_minutes)*60000,attempt.closes_at?parseSqliteUtc(attempt.closes_at):Infinity);
   return json({attempt:{id:attempt.id,exam_id:attempt.exam_id,exam_title:attempt.exam_title,started_at:attempt.started_at,status:attempt.status,results_visible:Number(attempt.results_visible)===1,score:(Number(attempt.results_visible)===1&&attempt.status==="graded"&&attempt.score!==null)?Number(attempt.score):null,deadline:new Date(deadline).toISOString(),remaining_seconds:Math.max(0,Math.floor((deadline-now)/1000))},questions:(q.results||[]).map(x=>({...x,options: x.options_json?JSON.parse(x.options_json):[]}))});
 }
 export async function onRequestPost({request,env}){
@@ -63,7 +63,7 @@ export async function onRequestPut({request,env}){
   if(!attempt)return json({message:"المحاولة غير موجودة."},404);
   attempt=await expireIfNeeded(env,attempt);
   if(attempt.status!=="in_progress")return json({message:"انتهى وقت المحاولة أو تم تسليمها بالفعل."},409);
-  const deadline=Math.min(parseSqliteUtc(attempt.started_at)+Number(attempt.duration_minutes)*60000,attempt.closes_at?Date.parse(String(attempt.closes_at).replace(" ","T")+"Z"):Infinity);
+  const deadline=Math.min(parseSqliteUtc(attempt.started_at)+Number(attempt.duration_minutes)*60000,attempt.closes_at?parseSqliteUtc(attempt.closes_at):Infinity);
   if(Date.now()>=deadline){await env.DB.prepare("UPDATE attempts SET status='expired',submitted_at=CURRENT_TIMESTAMP WHERE id=?").bind(id).run();return json({message:"انتهى وقت الامتحان. تم إغلاق المحاولة."},409);}
   const q=await env.DB.prepare("SELECT id,question_type,options_json,correct_answer,points FROM questions WHERE exam_id=?").bind(attempt.exam_id).all();
   const map=new Map((q.results||[]).map(x=>[x.id,x]));
