@@ -112,3 +112,11 @@
  .exam-submit-row span{max-width:48%;line-height:1.7}
  .exam-submit-row .student-submit{padding:11px 13px;font-size:11px}
 }
+
+.student-history{display:grid;gap:10px}
+.student-history-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 18px;background:var(--surface);border:1px solid var(--line);border-radius:12px}
+.student-history-row>div{display:grid;gap:5px}
+.student-history-row b{font-size:13px}
+.student-history-row small{font-size:10px;color:var(--muted)}
+.history-heading{margin-top:42px}
+@media(max-width:520px){.student-history-row{align-items:flex-start}.student-history-row .student-secondary{white-space:nowrap;padding:9px 10px;font-size:10px}}
