@@ -27,7 +27,7 @@ export async function onRequestPost({request,env}) {
 
     stage = "password_hash";
     const id=crypto.randomUUID();
-    const passwordHash=await hashPassword(password);
+    const passwordHash=await hashPassword(password,env.SESSION_SECRET);
 
     stage = "insert_admin";
     try {
