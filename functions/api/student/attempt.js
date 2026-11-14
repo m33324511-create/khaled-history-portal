@@ -9,7 +9,7 @@ async function expireIfNeeded(env,a){
   const deadline=parseSqliteUtc(a.started_at)+Number(a.duration_minutes)*60000;
   const close=a.closes_at?parseSqliteUtc(a.closes_at):Infinity;
   if(Date.now()>=Math.min(deadline,close)){
-    await env.DB.prepare("UPDATE attempts SET status='expired',submitted_at=CURRENT_TIMESTAMP,score=(SELECT COALESCE(SUM(awarded_points),0) FROM answers WHERE attempt_id=?) WHERE id=? AND status='in_progress'").bind(a.id,a.id).run();
+    await env.DB.prepare("UPDATE attempts SET status=CASE WHEN EXISTS (SELECT 1 FROM questions q WHERE q.exam_id=? AND q.question_type='essay') THEN 'expired' ELSE 'graded' END,submitted_at=CURRENT_TIMESTAMP,score=(SELECT COALESCE(SUM(awarded_points),0) FROM answers WHERE attempt_id=?) WHERE id=? AND status='in_progress'").bind(a.exam_id,a.id,a.id).run();
     return {...a,status:"expired"};
   }
   return a;
@@ -42,7 +42,7 @@ export async function onRequestPost({request,env}){
   if(active){
     const deadline=parseSqliteUtc(active.started_at)+Number(exam.duration_minutes)*60000;
     if(now<Math.min(deadline,closes))return json({ok:true,attempt_id:active.id,resumed:true});
-    await env.DB.prepare("UPDATE attempts SET status='expired',submitted_at=CURRENT_TIMESTAMP WHERE id=? AND status='in_progress'").bind(active.id).run();
+    await env.DB.prepare("UPDATE attempts SET status=CASE WHEN EXISTS (SELECT 1 FROM questions q WHERE q.exam_id=? AND q.question_type='essay') THEN 'expired' ELSE 'graded' END,submitted_at=CURRENT_TIMESTAMP,score=(SELECT COALESCE(SUM(awarded_points),0) FROM answers WHERE attempt_id=?) WHERE id=? AND status='in_progress'").bind(examId,active.id,active.id).run();
   }
   const count=await env.DB.prepare("SELECT COUNT(*) AS n FROM attempts WHERE exam_id=? AND student_id=?").bind(examId,student.id).first();
   if(Number(count?.n||0)>=Number(exam.max_attempts))return json({message:"استنفدت عدد المحاولات المسموح به لهذا الامتحان."},409);
