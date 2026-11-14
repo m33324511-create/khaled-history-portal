@@ -76,7 +76,11 @@ export async function onRequestPut({request,env}){
     if(question.question_type!=="essay"){
       isCorrect=answer===String(question.correct_answer)?1:0;
       awarded=isCorrect?Number(question.points):0;
-    } else if(answer.length===0){ continue; }
+    } else if(answer.length===0){
+      const existing=await env.DB.prepare("SELECT id FROM answers WHERE attempt_id=? AND question_id=? ORDER BY id LIMIT 1").bind(id,qid).first();
+      if(existing)statements.push(env.DB.prepare("UPDATE answers SET answer_text=NULL,awarded_points=NULL,is_correct=NULL WHERE id=?").bind(existing.id));
+      continue;
+    }
     const existing=await env.DB.prepare("SELECT id FROM answers WHERE attempt_id=? AND question_id=? ORDER BY id LIMIT 1").bind(id,qid).first();
     if(existing)statements.push(env.DB.prepare("UPDATE answers SET answer_text=?,awarded_points=?,is_correct=? WHERE id=?").bind(answer,awarded,isCorrect,existing.id));
     else statements.push(env.DB.prepare("INSERT INTO answers (id,attempt_id,question_id,answer_text,awarded_points,is_correct) VALUES (?,?,?,?,?,?)").bind(crypto.randomUUID(),id,qid,answer,awarded,isCorrect));
