@@ -21,7 +21,7 @@
  async function showDashboard(admin) {
    authView.classList.add("hidden");dashboard.classList.remove("hidden");$("#adminName").textContent=admin.full_name;
    try{await refreshStats();}catch(e){$("#stats").textContent=e.message;}
-   if(currentTab==="students") await renderStudents(); else if(currentTab==="groups") await renderGroups(); else if(currentTab==="exams") await renderExams();
+   if(currentTab==="students") await renderStudents(); else if(currentTab==="groups") await renderGroups(); else if(currentTab==="exams") await renderExams(); else if(currentTab==="results") await renderResults();
  }
  function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
  async function renderStudents(q=""){
@@ -174,6 +174,43 @@
    try{await api("/api/admin/exams?id="+encodeURIComponent(id),{method:"DELETE"});await loadExams();await refreshStats();}
    catch(e){alert(e.message);}
  }
+ async function renderResults(){
+   currentTab="results";const panel=$("#panel");
+   panel.innerHTML='<div class="section-head"><div><h2>النتائج وتصحيح الأسئلة المقالية</h2><p>راجع إجابات الطلاب، أدخل درجات الأسئلة المقالية، وسيُحسب المجموع النهائي تلقائيًا.</p></div><button id="refreshResults" class="ghost">تحديث</button></div><div id="resultsNotice" class="notice">جارٍ تحميل المحاولات…</div><div class="table-wrap"><table class="students-table"><thead><tr><th>الطالب</th><th>الامتحان</th><th>المحاولة</th><th>الدرجة الحالية</th><th>المقالي المتبقي</th><th>الحالة</th><th>الإجراء</th></tr></thead><tbody id="resultsRows"></tbody></table></div><div id="attemptReview"></div>';
+   $("#refreshResults").onclick=loadResults;
+   await loadResults();
+ }
+ async function loadResults(){
+   const notice=$("#resultsNotice"),rows=$("#resultsRows");if(!notice||!rows)return;
+   try{
+     const data=await api("/api/admin/results");const attempts=data.attempts||[];
+     notice.textContent="عدد المحاولات المسجلة: "+attempts.length;
+     rows.innerHTML=attempts.map(a=>'<tr><td><b>'+esc(a.full_name)+'</b><div class="caption">'+esc(a.student_code)+'</div></td><td>'+esc(a.exam_title)+'</td><td>'+Number(a.attempt_number)+'</td><td>'+ (a.score===null?"لم تُحسب بعد":Number(a.score).toFixed(2))+'</td><td>'+Number(a.pending_essays||0)+' من '+Number(a.essay_count||0)+'</td><td><span class="state '+(a.status==="graded"?"on":"off")+'">'+(a.status==="graded"?"تم التصحيح":a.status==="in_progress"?"قيد الحل":a.status==="expired"?"انتهى الوقت":"بانتظار التصحيح")+'</span></td><td><button class="mini open-attempt" data-id="'+esc(a.id)+'">عرض وتصحيح</button></td></tr>').join("");
+     if(!attempts.length)rows.innerHTML='<tr><td colspan="7">لا توجد محاولات امتحان مسجلة حتى الآن.</td></tr>';
+     rows.querySelectorAll(".open-attempt").forEach(b=>b.onclick=()=>openAttempt(b.dataset.id));
+   }catch(e){notice.textContent=e.message;}
+ }
+ async function openAttempt(id){
+   const wrap=$("#attemptReview");if(!wrap)return;
+   try{
+     const data=await api("/api/admin/results?attempt_id="+encodeURIComponent(id)),a=data.attempt,items=data.items||[];
+     const essay=items.filter(x=>x.question_type==="essay");
+     wrap.innerHTML='<section class="student-editor result-review"><div class="section-head"><div><h3>'+esc(a.full_name)+' — '+esc(a.exam_title)+'</h3><p>رقم المحاولة: '+Number(a.attempt_number)+' · الدرجة الحالية: <b>'+ (a.score===null?"لم تُحسب":Number(a.score).toFixed(2))+'</b></p></div><button type="button" id="closeAttempt" class="ghost">إغلاق</button></div><h3>مراجعة الإجابات</h3><div class="result-answers">'+items.map((q,i)=>'<article class="result-answer"><b>السؤال '+(i+1)+' · '+(q.question_type==="essay"?"مقالي":q.question_type==="mcq"?"اختيار من متعدد":"صح أو خطأ")+'</b><p>'+esc(q.question_text)+'</p><div class="answer-text"><span>إجابة الطالب:</span> '+esc(q.answer_text||"لم يقدّم إجابة")+'</div><div class="answer-meta">الدرجة الكاملة: '+Number(q.points).toFixed(2)+(q.question_type!=="essay"?' · الدرجة المحسوبة: '+(q.awarded_points===null?"غير متاحة":Number(q.awarded_points).toFixed(2)):"")+'</div>'+(q.question_type==="essay"?'<label class="grade-field">درجة الطالب (من '+Number(q.points).toFixed(2)+')<input class="essay-grade" type="number" min="0" max="'+Number(q.points)+'" step="0.25" data-question="'+esc(q.question_id)+'" value="'+(q.awarded_points===null?"":Number(q.awarded_points))+'" placeholder="أدخل الدرجة"></label>':'')+'</article>').join("")+'</div><div class="form-actions"><button type="button" id="saveEssayGrades" class="primary" '+(essay.length?"":"disabled")+'>حفظ التصحيح وحساب المجموع</button><span id="gradeMessage" role="status">'+(essay.length?"أدخل درجات الأسئلة المقالية التي تم تصحيحها.":"لا توجد أسئلة مقالية في هذا الامتحان.")+'</span></div></section>';
+     $("#closeAttempt").onclick=()=>wrap.innerHTML="";
+     $("#saveEssayGrades").onclick=async()=>{
+       const grades=[...wrap.querySelectorAll(".essay-grade")].filter(input=>input.value.trim()!=="").map(input=>({question_id:input.dataset.question,awarded_points:Number(input.value)}));
+       if(!grades.length){$("#gradeMessage").textContent="أدخل درجة سؤال مقالي واحد على الأقل.";return;}
+       if(!confirm("حفظ درجات الأسئلة المقالية المحددة وإعادة حساب مجموع الطالب؟"))return;
+       const button=$("#saveEssayGrades");button.disabled=true;$("#gradeMessage").textContent="جارٍ حفظ الدرجات وحساب المجموع…";
+       try{
+         const result=await api("/api/admin/results",{method:"PUT",body:JSON.stringify({attempt_id:id,grades})});
+         $("#gradeMessage").textContent="تم الحفظ. المجموع الحالي: "+Number(result.score).toFixed(2)+(result.status==="graded"?" — اكتمل التصحيح.":" — ما زالت هناك أسئلة مقالية لم تُصحح.");
+         await loadResults();await openAttempt(id);
+       }catch(err){$("#gradeMessage").textContent=err.message;button.disabled=false;}
+     };
+     wrap.scrollIntoView({behavior:"smooth",block:"start"});
+   }catch(e){wrap.innerHTML='<div class="notice">'+esc(e.message)+'</div>';}
+ }
  async function showPlaceholder(tab,label){
    currentTab=tab;$("#panel").innerHTML="<h2>"+esc(label)+"</h2><p class='notice'>سيتم تفعيل هذا القسم في مرحلة مستقلة بعد اختبار إدارة الطلاب.</p>";
  }
@@ -181,6 +218,6 @@
  login.addEventListener("submit",async e=>{e.preventDefault();msg.textContent="جارٍ التحقق…";const f=new FormData(login);try{const r=await api("/api/admin/login",{method:"POST",body:JSON.stringify(Object.fromEntries(f))});currentTab="overview";await showDashboard(r.admin);}catch(err){msg.textContent=err.message;}});
  setup.addEventListener("submit",async e=>{e.preventDefault();msg.textContent="جارٍ إنشاء الحساب…";const f=new FormData(setup);try{const r=await api("/api/admin/setup",{method:"POST",body:JSON.stringify(Object.fromEntries(f))});await showDashboard(r.admin);}catch(err){msg.textContent=err.message;}});
  $("#logoutBtn").addEventListener("click",async()=>{try{await api("/api/admin/logout",{method:"POST",body:"{}"});}finally{location.reload();}});
- document.querySelectorAll("[data-tab]").forEach(btn=>btn.addEventListener("click",async()=>{document.querySelectorAll("[data-tab]").forEach(x=>x.classList.remove("active"));btn.classList.add("active");const tab=btn.dataset.tab;if(tab==="students")await renderStudents();else if(tab==="groups")await renderGroups();else if(tab==="exams")await renderExams();else if(tab==="overview"){currentTab="overview";$("#panel").innerHTML="<h2>نظرة عامة</h2><div id='stats' class='stats'></div>";await refreshStats();}else await showPlaceholder(tab,btn.textContent);}));
+ document.querySelectorAll("[data-tab]").forEach(btn=>btn.addEventListener("click",async()=>{document.querySelectorAll("[data-tab]").forEach(x=>x.classList.remove("active"));btn.classList.add("active");const tab=btn.dataset.tab;if(tab==="students")await renderStudents();else if(tab==="groups")await renderGroups();else if(tab==="exams")await renderExams();else if(tab==="results")await renderResults();else if(tab==="overview"){currentTab="overview";$("#panel").innerHTML="<h2>نظرة عامة</h2><div id='stats' class='stats'></div>";await refreshStats();}else await showPlaceholder(tab,btn.textContent);}));
  init();
 })();
