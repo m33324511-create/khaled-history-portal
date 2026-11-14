@@ -13,5 +13,7 @@ export async function onRequestGet({request,env}){
     const attemptsLeft=Math.max(0,Number(e.max_attempts)-Number(e.attempts_used||0));
     return {...e,available,attempts_left:attemptsLeft,can_start:available&&(attemptsLeft>0||!!e.active_attempt)};
   });
-  return json({student:{full_name:student.full_name,student_code:student.student_code,group_id:student.group_id},exams});
+  const history=await env.DB.prepare("SELECT a.id,a.attempt_number,a.started_at,a.submitted_at,a.status,a.score,e.title AS exam_title,e.results_visible FROM attempts a JOIN exams e ON e.id=a.exam_id WHERE a.student_id=? ORDER BY COALESCE(a.submitted_at,a.started_at) DESC LIMIT 50").bind(student.id).all();
+  const attempts=(history.results||[]).map(a=>({...a,score:(Number(a.results_visible)===1&&a.status==="graded"&&a.score!==null)?Number(a.score):null}));
+  return json({student:{full_name:student.full_name,student_code:student.student_code,group_id:student.group_id},exams,attempts});
 }
