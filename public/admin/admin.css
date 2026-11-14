@@ -2,3 +2,17 @@
 .section-head{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:18px}.section-head h2,.section-head h3{margin:0}.section-head p{color:var(--muted);font-size:12px;margin:7px 0 0}.primary{border:0;border-radius:9px;background:var(--accent);color:#071b22;padding:11px 17px;font-weight:900}.student-tools{display:flex;gap:9px;margin:18px 0;flex-wrap:wrap}.student-tools input,.student-fields input,.student-fields select{min-width:0;padding:11px 12px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--text);font:inherit}.student-tools input{flex:1;min-width:220px}.student-editor{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;margin:18px 0}.student-editor h3{font-size:16px}.student-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.student-fields label{display:grid;gap:7px;color:var(--muted);font-size:12px}.form-actions{display:flex;align-items:center;gap:14px;margin-top:16px}.form-actions span{font-size:12px;color:var(--warm)}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px}.students-table{width:100%;border-collapse:collapse;min-width:760px;font-size:12px}.students-table th,.students-table td{padding:13px;text-align:right;border-bottom:1px solid var(--line)}.students-table th{color:var(--accent);background:var(--surface);font-weight:800}.students-table td{color:var(--text)}.students-table code{color:var(--accent)}.state{display:inline-block;padding:4px 9px;border-radius:30px;font-size:10px}.state.on{background:#1c694533;color:#77d9a0}.state.off{background:#a65d5333;color:#ff9b8d}.actions{display:flex;gap:6px}.mini{border:1px solid var(--line);border-radius:7px;background:var(--surface2);color:var(--text);padding:6px 9px;font:inherit;font-size:11px}.mini.danger{color:#ff9b8d;border-color:#a65d5380}.mini.activate{color:#77d9a0;border-color:#39865e80}@media(max-width:650px){.student-fields{grid-template-columns:1fr}.section-head{align-items:flex-start;flex-direction:column}.student-tools input{min-width:100%}}
 
 .group-tools-note{font-size:11px;color:var(--muted);margin:8px 0}
+
+.exam-editor{margin:18px 0 24px}
+.exam-editor>label{display:block;margin:14px 0}
+.exam-editor textarea,.q-card textarea{width:100%;box-sizing:border-box;resize:vertical}
+.exam-editor .check-label{display:flex;align-items:center;gap:9px;padding:10px;border:1px solid var(--line);border-radius:10px}
+.exam-editor .check-label input{width:auto}
+.exam-question{border:1px solid var(--line);border-radius:14px;padding:14px;margin:12px 0;background:var(--surface)}
+.exam-question label{display:block;margin:10px 0}
+.exam-question input,.exam-question select,.exam-question textarea{width:100%;box-sizing:border-box}
+.exam-question [hidden]{display:none!important}
+.q-essay-note{font-size:12px;color:var(--muted)}
+.caption{font-size:11px;color:var(--muted);margin-top:4px}
+.exam-editor .section-head{margin-top:16px}
+.exam-editor .student-fields{margin:12px 0}
