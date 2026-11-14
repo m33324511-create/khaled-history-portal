@@ -1,4 +1,4 @@
-import { json, requireAdmin } from "../../_lib/auth.js";
+import { json, requireAdmin, sameOrigin } from "../../_lib/auth.js";
 const clean = value => String(value ?? "").trim();
 export async function onRequestGet({request,env}) {
   const admin=await requireAdmin(request,env);
