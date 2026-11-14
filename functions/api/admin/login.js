@@ -10,7 +10,7 @@ export async function onRequestPost({request,env}) {
   const recent=await env.DB.prepare("SELECT COUNT(*) AS n FROM auth_attempts WHERE ip_address=? AND created_at >= datetime('now','-15 minutes') AND success=0").bind(ip).first();
   if ((recent?.n||0)>=8) return json({message:"محاولات كثيرة. انتظر 15 دقيقة ثم حاول مجددًا."},429);
   const admin=await env.DB.prepare("SELECT * FROM admins WHERE username=? COLLATE NOCASE AND is_active=1 LIMIT 1").bind(username).first();
-  const valid=admin ? await verifyPassword(password,admin.password_hash) : false;
+  const valid=admin ? await verifyPassword(password,admin.password_hash,env.SESSION_SECRET) : false;
   await env.DB.prepare("INSERT INTO auth_attempts (id,ip_address,identity,success) VALUES (?,?,?,?)")
     .bind(crypto.randomUUID(),ip,username,valid?1:0).run();
   if (!valid) return json({message:"بيانات الدخول غير صحيحة."},401);
