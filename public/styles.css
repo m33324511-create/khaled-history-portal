@@ -40,3 +40,11 @@
  .footer-bottom{justify-content:center;text-align:center;gap:9px;flex-direction:column}
  .copyright,.footer-legal,.developer-credit{width:100%;text-align:center}
 }
+
+/* Refined teacher portrait framing */
+.photo-frame{height:510px;width:min(82%,410px);right:11%;bottom:0}
+.photo-frame:before{inset:6% -6% 0;border-radius:46% 46% 18px 18px;transform:rotate(2.5deg)}
+.photo-frame img{object-fit:cover;object-position:50% 14%;border-radius:45% 45% 10px 10px;mask-image:linear-gradient(to bottom,#000 91%,transparent 100%);filter:contrast(1.035) saturate(.96)}
+.photo-glow{inset:4% -4% 0;opacity:.16}
+@media(max-width:1000px){.photo-frame{height:450px;width:82%;right:9%}}
+@media(max-width:680px){.photo-frame{height:370px;width:78%;right:11%}.photo-frame:before{inset:6% -5% 0}.photo-frame img{object-position:50% 13%}}
