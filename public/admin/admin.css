@@ -28,3 +28,5 @@
 .grade-field{display:flex!important;align-items:center;gap:12px;margin-top:12px!important;color:var(--accent)!important;font-size:12px}
 .grade-field input{width:130px;max-width:40%;padding:10px;border:1px solid var(--accent);border-radius:8px;background:var(--surface);color:var(--text);font:inherit}
 #saveEssayGrades:disabled{opacity:.5;cursor:not-allowed}
+
+.honor-editor .caption{line-height:1.8}
