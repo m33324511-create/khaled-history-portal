@@ -6,7 +6,7 @@ export const json = (body, status = 200, headers = {}) => new Response(JSON.stri
 });
 export function b64url(bytes) {
   let s = ""; for (const b of bytes) s += String.fromCharCode(b);
-  return btoa(s).replace(/\\+/g,"-").replace(/\\//g,"_").replace(/=+$/g,"");
+  return btoa(s).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/g,"");
 }
 export function unb64url(s) {
   const raw = atob(s.replace(/-/g,"+").replace(/_/g,"/") + "=".repeat((4-s.length%4)%4));
