@@ -21,7 +21,7 @@
  async function showDashboard(admin) {
    authView.classList.add("hidden");dashboard.classList.remove("hidden");$("#adminName").textContent=admin.full_name;
    try{await refreshStats();}catch(e){$("#stats").textContent=e.message;}
-   if(currentTab==="students") await renderStudents(); else if(currentTab==="groups") await renderGroups(); else if(currentTab==="exams") await renderExams(); else if(currentTab==="results") await renderResults();
+   if(currentTab==="students") await renderStudents(); else if(currentTab==="groups") await renderGroups(); else if(currentTab==="honors") await renderHonors(); else if(currentTab==="exams") await renderExams(); else if(currentTab==="results") await renderResults();
  }
  function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
  async function renderStudents(q=""){
@@ -238,7 +238,45 @@
    try{await api("/api/admin/admins",{method:"PUT",body:JSON.stringify({id,is_active:!active})});await loadAdmins();await refreshStats();}
    catch(e){alert(e.message);}
  }
- async function renderLogs(){
+
+ async function renderHonors(){
+   currentTab="honors";const panel=$("#panel");
+   panel.innerHTML='<div class="section-head"><div><h2>إدارة لائحة الشرف</h2><p>تكريم الطلاب المتميزين في الصفوف الأول والثاني والثالث الثانوي.</p></div><button id="addHonorBtn" class="primary">＋ إضافة طالب متميز</button></div><div id="honorFormWrap"></div><div id="honorsNotice" class="notice">جارٍ تحميل لائحة الشرف…</div><div class="table-wrap"><table class="students-table"><thead><tr><th>الطالب</th><th>الصف الدراسي</th><th>المجموعة</th><th>الإنجاز</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody id="honorsRows"></tbody></table></div>';
+   $("#addHonorBtn").onclick=()=>honorForm();await loadHonors();
+ }
+ let honorCache=[];
+ async function loadHonors(){
+   const notice=$("#honorsNotice"),rows=$("#honorsRows");if(!notice||!rows)return;
+   try{const data=await api("/api/admin/honors");honorCache=data.students||[];
+     notice.textContent="عدد الأسماء في اللائحة: "+honorCache.length;
+     rows.innerHTML=honorCache.map(s=>'<tr><td>'+esc(s.full_name)+'</td><td>'+esc(s.grade)+'</td><td>'+esc(s.group_name||"—")+'</td><td>'+esc(s.achievement||"—")+'</td><td><span class="state '+(s.is_active?"on":"off")+'">'+(s.is_active?"ظاهر للعامة":"مخفي")+'</span></td><td class="actions"><button class="mini edit-honor" data-id="'+esc(s.id)+'">تعديل</button><button class="mini '+(s.is_active?"danger":"activate")+'" data-toggle-honor="'+esc(s.id)+'" data-active="'+(s.is_active?1:0)+'">'+(s.is_active?"إخفاء":"إظهار")+'</button><button class="mini danger" data-delete-honor="'+esc(s.id)+'">حذف</button></td></tr>').join("");
+     rows.querySelectorAll(".edit-honor").forEach(b=>b.onclick=()=>honorForm(honorCache.find(s=>s.id===b.dataset.id)));
+     rows.querySelectorAll("[data-toggle-honor]").forEach(b=>b.onclick=()=>toggleHonor(b.dataset.toggleHonor,b.dataset.active==="1"));
+     rows.querySelectorAll("[data-delete-honor]").forEach(b=>b.onclick=()=>deleteHonor(b.dataset.deleteHonor));
+   }catch(e){notice.textContent=e.message;}
+ }
+ async function honorForm(student=null){
+   const wrap=$("#honorFormWrap");if(!wrap)return;
+   let groups=[];try{groups=(await api("/api/admin/groups?status=all")).groups||[];}catch(e){$("#honorsNotice").textContent=e.message;return;}
+   const grades=["الصف الأول الثانوي","الصف الثاني الثانوي","الصف الثالث الثانوي"];
+   wrap.innerHTML='<form id="honorEditor" class="student-editor"><div class="section-head"><h3>'+(student?"تعديل بيانات الطالب":"إضافة طالب إلى لائحة الشرف")+'</h3><button type="button" id="cancelHonor" class="ghost">إغلاق</button></div><div class="student-fields"><label>اسم الطالب<input name="full_name" required minlength="3" maxlength="120" value="'+esc(student?.full_name||"")+'"></label><label>المرحلة الدراسية<select name="grade" required>'+grades.map(g=>'<option value="'+g+'" '+(student?.grade===g?"selected":"")+'>'+g+'</option>').join("")+'</select></label><label>مجموعة الدروس<select name="group_id"><option value="">بدون مجموعة</option>'+groups.map(g=>'<option value="'+esc(g.id)+'" '+(student?.group_id===g.id?"selected":"")+'>'+esc(g.name)+'</option>').join("")+'</select></label><label>رابط صورة الطالب (https://)<input name="photo_url" type="url" placeholder="https://example.com/student.jpg" value="'+esc(student?.photo_url||"")+'"></label><label>الإنجاز أو سبب التكريم<input name="achievement" maxlength="1000" placeholder="مثال: التفوق في مادة التاريخ" value="'+esc(student?.achievement||"")+'"></label><label>ترتيب العرض<input name="sort_order" type="number" min="0" max="9999" value="'+esc(student?.sort_order??0)+'"></label></div><p class="caption">أدخل رابط صورة مباشر وآمن يبدأ بـ https://. رفع الصور من الجهاز غير مفعّل في هذه المرحلة.</p><div class="form-actions"><button class="primary">'+(student?"حفظ التعديلات":"إضافة إلى اللائحة")+'</button><span id="honorFormMsg" role="status"></span></div></form>';
+   $("#cancelHonor").onclick=()=>wrap.innerHTML="";
+   $("#honorEditor").onsubmit=async e=>{e.preventDefault();const button=e.submitter,body=Object.fromEntries(new FormData(e.currentTarget));if(student)body.id=student.id;button.disabled=true;$("#honorFormMsg").textContent="جارٍ الحفظ…";
+     try{await api("/api/admin/honors",{method:student?"PUT":"POST",body:JSON.stringify(body)});wrap.innerHTML="";await loadHonors();await refreshStats();}
+     catch(err){$("#honorFormMsg").textContent=err.message;button.disabled=false;}
+   };
+ }
+ async function toggleHonor(id,active){
+   if(!confirm(active?"إخفاء هذا الطالب من لائحة الشرف العامة؟":"إظهار هذا الطالب في لائحة الشرف؟"))return;
+   try{await api("/api/admin/honors",{method:"PUT",body:JSON.stringify({id,is_active:!active})});await loadHonors();}
+   catch(e){alert(e.message);}
+ }
+ async function deleteHonor(id){
+   if(!confirm("حذف هذا الاسم نهائيًا من لائحة الشرف؟"))return;
+   try{await api("/api/admin/honors?id="+encodeURIComponent(id),{method:"DELETE"});await loadHonors();await refreshStats();}
+   catch(e){alert(e.message);}
+ }
+\n async function renderLogs(){
    currentTab="logs";const panel=$("#panel");
    panel.innerHTML='<div class="section-head"><div><h2>سجل العمليات</h2><p>عرض أحدث العمليات الإدارية المسجلة على البوابة.</p></div><div class="actions"><button id="refreshLogs" class="ghost">تحديث</button><button id="clearLogs" class="mini danger">حذف السجلات</button></div></div><div class="student-tools"><input id="logSearch" placeholder="ابحث باسم المسؤول أو نوع العملية أو القسم"><button id="searchLogs" class="ghost">بحث</button></div><div id="logsNotice" class="notice">جارٍ تحميل سجل العمليات…</div><div class="table-wrap"><table class="students-table"><thead><tr><th>التاريخ</th><th>المسؤول</th><th>العملية</th><th>القسم</th><th>التفاصيل</th></tr></thead><tbody id="logsRows"></tbody></table></div>';
    $("#refreshLogs").onclick=()=>loadLogs();$("#clearLogs").onclick=async()=>{if(!confirm("تحذير: سيتم حذف جميع سجلات العمليات الحالية نهائيًا. سيُحتفظ بسجل واحد يوثق عملية الحذف. هل تريد المتابعة؟"))return;const b=$("#clearLogs");b.disabled=true;try{const result=await api("/api/admin/logs",{method:"DELETE",body:JSON.stringify({confirm:"DELETE_ALL_LOGS"})});await loadLogs($("#logSearch").value.trim());alert("تم حذف "+Number(result.deleted_count||0)+" سجل.");}catch(e){alert(e.message);}finally{b.disabled=false;}};$("#searchLogs").onclick=()=>loadLogs($("#logSearch").value.trim());$("#logSearch").addEventListener("keydown",e=>{if(e.key==="Enter")loadLogs(e.target.value.trim());});await loadLogs();
@@ -255,6 +293,6 @@
  login.addEventListener("submit",async e=>{e.preventDefault();msg.textContent="جارٍ التحقق…";const f=new FormData(login);try{const r=await api("/api/admin/login",{method:"POST",body:JSON.stringify(Object.fromEntries(f))});currentTab="overview";await showDashboard(r.admin);}catch(err){msg.textContent=err.message;}});
  setup.addEventListener("submit",async e=>{e.preventDefault();msg.textContent="جارٍ إنشاء الحساب…";const f=new FormData(setup);try{const r=await api("/api/admin/setup",{method:"POST",body:JSON.stringify(Object.fromEntries(f))});await showDashboard(r.admin);}catch(err){msg.textContent=err.message;}});
  $("#logoutBtn").addEventListener("click",async()=>{try{await api("/api/admin/logout",{method:"POST",body:"{}"});}finally{location.reload();}});
- document.querySelectorAll("[data-tab]").forEach(btn=>btn.addEventListener("click",async()=>{document.querySelectorAll("[data-tab]").forEach(x=>x.classList.remove("active"));btn.classList.add("active");const tab=btn.dataset.tab;if(tab==="students")await renderStudents();else if(tab==="groups")await renderGroups();else if(tab==="exams")await renderExams();else if(tab==="results")await renderResults();else if(tab==="admins")await renderAdmins();else if(tab==="logs")await renderLogs();else if(tab==="overview"){currentTab="overview";$("#panel").innerHTML="<h2>نظرة عامة</h2><div id='stats' class='stats'></div>";await refreshStats();}}));
+ document.querySelectorAll("[data-tab]").forEach(btn=>btn.addEventListener("click",async()=>{document.querySelectorAll("[data-tab]").forEach(x=>x.classList.remove("active"));btn.classList.add("active");const tab=btn.dataset.tab;if(tab==="students")await renderStudents();else if(tab==="groups")await renderGroups();else if(tab==="honors")await renderHonors();else if(tab==="exams")await renderExams();else if(tab==="results")await renderResults();else if(tab==="admins")await renderAdmins();else if(tab==="logs")await renderLogs();else if(tab==="overview"){currentTab="overview";$("#panel").innerHTML="<h2>نظرة عامة</h2><div id='stats' class='stats'></div>";await refreshStats();}}));
  init();
 })();
