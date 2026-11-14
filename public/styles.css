@@ -120,3 +120,23 @@
 .student-history-row small{font-size:10px;color:var(--muted)}
 .history-heading{margin-top:42px}
 @media(max-width:520px){.student-history-row{align-items:flex-start}.student-history-row .student-secondary{white-space:nowrap;padding:9px 10px;font-size:10px}}
+
+/* Honors roll */
+.honors-section{background:var(--surface)}
+.honors-filters{display:flex;flex-wrap:wrap;gap:9px;margin:-12px 0 28px}
+.honor-filter{padding:9px 17px;border:1px solid var(--line);border-radius:30px;background:transparent;color:var(--muted);font:700 11px Cairo,Tahoma,sans-serif;cursor:pointer}
+.honor-filter.active,.honor-filter:hover{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.honors-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.honor-card{overflow:hidden;border:1px solid var(--line);border-radius:16px;background:var(--bg);transition:transform .25s,border-color .25s}
+.honor-card:hover{transform:translateY(-5px);border-color:var(--accent)}
+.honor-photo{height:235px;display:grid;place-items:center;overflow:hidden;background:radial-gradient(circle at 50% 35%,var(--accent-soft),transparent 70%),var(--surface2);color:var(--accent);font-size:58px}
+.honor-photo img{width:100%;height:100%;object-fit:cover}
+.honor-photo.no-photo{background:radial-gradient(circle,var(--accent-soft),transparent 70%),var(--surface2)}
+.honor-card-body{padding:20px}
+.honor-grade{display:inline-block;padding:5px 10px;border-radius:30px;background:var(--accent-soft);color:var(--accent);font-size:10px;font-weight:800}
+.honor-card h3{font-size:18px;margin:13px 0 7px}
+.honor-group{font-size:11px;color:var(--accent);margin:0 0 8px}
+.honor-achievement{font-size:12px;line-height:2;color:var(--muted);margin:0}
+.honors-empty{grid-column:1/-1;padding:34px 18px;text-align:center;border:1px dashed var(--line);border-radius:14px;color:var(--muted);font-size:13px}
+@media(max-width:850px){.honors-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.honors-grid{grid-template-columns:1fr}.honor-photo{height:260px}.honors-filters{gap:7px}.honor-filter{padding:8px 11px;font-size:10px}}
