@@ -16,6 +16,26 @@
   themeToggle.addEventListener('click', () => setTheme(root.dataset.theme === 'dark' ? 'light' : 'dark'));
   document.getElementById('year').textContent = new Date().getFullYear();
 
+  // Public honors roll: separate from the student exam dashboard.
+  const honorsGrid = document.getElementById('honorsGrid');
+  if (honorsGrid) {
+    let honorsRows = [], honorsGrade = '';
+    const safeText = value => String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+    function renderHonors() {
+      const rows = honorsRows.filter(row => !honorsGrade || row.grade === honorsGrade);
+      if (!rows.length) { honorsGrid.innerHTML = '<div class="honors-empty">لا توجد أسماء مضافة لهذا الصف حاليًا.</div>'; return; }
+      honorsGrid.innerHTML = rows.map(row => '<article class="honor-card"><div class="honor-photo">'+(row.photo_url ? '<img src="'+safeText(row.photo_url)+'" alt="صورة '+safeText(row.full_name)+'" loading="lazy" onerror="this.parentElement.classList.add(\'no-photo\');this.remove()">' : '<span>𓂀</span>')+'</div><div class="honor-card-body"><span class="honor-grade">'+safeText(row.grade)+'</span><h3>'+safeText(row.full_name)+'</h3>'+(row.group_name?'<p class="honor-group">'+safeText(row.group_name)+'</p>':'')+(row.achievement?'<p class="honor-achievement">'+safeText(row.achievement)+'</p>':'')+'</div></article>').join('');
+    }
+    document.querySelectorAll('[data-honor-grade]').forEach(button => button.addEventListener('click', () => {
+      honorsGrade = button.dataset.honorGrade || '';
+      document.querySelectorAll('[data-honor-grade]').forEach(item => item.classList.toggle('active', item === button));
+      renderHonors();
+    }));
+    fetch('/api/honors').then(response => { if (!response.ok) throw new Error('تعذر تحميل البيانات'); return response.json(); })
+      .then(data => { honorsRows = data.students || []; renderHonors(); })
+      .catch(() => { honorsGrid.innerHTML = '<div class="honors-empty">تعذر تحميل لائحة الشرف الآن. حاول تحديث الصفحة.</div>'; });
+  }
+
   const modal = document.getElementById('loginModal');
   const form = document.getElementById('studentLoginForm');
   const message = document.getElementById('formMessage');
