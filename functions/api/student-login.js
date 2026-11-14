@@ -29,7 +29,7 @@ export async function onRequestPost({ request, env }) {
   if (name.length > 120 || phone.length > 25 || studentCode.length > 80) return json({ message: 'بعض البيانات أطول من المسموح.' }, 400);
 
   const ip = (request.headers.get('CF-Connecting-IP') || 'unknown').slice(0,64);
-  const recent = await env.DB.prepare("SELECT COUNT(*) AS n FROM auth_attempts WHERE ip_address=? AND created_at >= datetime('now','-15 minutes') AND success=0").bind(ip).first();
+  const recent = await env.DB.prepare("SELECT COUNT(*) AS n FROM auth_attempts WHERE ip_address=? AND identity=? AND created_at >= datetime('now','-15 minutes') AND success=0").bind(ip,studentCode).first();
   if (Number(recent?.n || 0) >= 10) return json({ message: 'محاولات دخول كثيرة. انتظر قليلًا ثم حاول مجددًا.' }, 429);
 
   const student = await env.DB.prepare(
