@@ -10,3 +10,33 @@
 
 .footer-contacts{display:flex;align-items:center;gap:22px}.contact-group{display:flex;flex-direction:column;align-items:center;gap:7px}.contact-group>span{font-family:'Cairo',sans-serif;font-size:10px;font-weight:700;color:var(--muted)}
 @media(max-width:680px){.footer-contacts{order:2;width:100%;justify-content:flex-start;flex-wrap:wrap;gap:18px}.contact-group{align-items:flex-start}.footer-contact{order:initial}.developer-credit{order:4}}
+
+
+/* Professional footer */
+.footer{display:block;min-height:0;padding:42px clamp(22px,7vw,110px) 18px;border-top:1px solid var(--line);background:linear-gradient(180deg,var(--surface),var(--bg))}
+.footer-main{display:grid;grid-template-columns:minmax(220px,1fr) minmax(360px,1.2fr);align-items:start;gap:55px;padding-bottom:34px}
+.footer-brand-block{max-width:370px}
+.footer-description{font-size:12px;line-height:2;color:var(--muted);margin:17px 0 10px}
+.footer-tagline{font:700 9px Manrope,sans-serif;letter-spacing:.7px;color:var(--accent);direction:ltr;display:inline-block}
+.footer-contact-area{display:flex;justify-content:flex-end;gap:clamp(35px,7vw,100px);padding-top:5px}
+.contact-group{align-items:flex-start;gap:13px;min-width:125px}
+.contact-group .contact-title{font-family:'Cairo',sans-serif;font-size:12px;font-weight:800;color:var(--text);position:relative;padding-bottom:9px}
+.contact-group .contact-title:after{content:"";position:absolute;right:0;bottom:0;width:28px;height:2px;background:var(--accent);border-radius:2px}
+.footer-contact{gap:13px}
+.footer-contact a{width:42px;height:42px;border-radius:13px;background:var(--bg2);border-color:var(--line);box-shadow:0 5px 18px rgba(0,0,0,.08)}
+.footer-contact a:hover{transform:translateY(-4px);box-shadow:0 9px 22px var(--accent-soft)}
+.footer-contact svg{width:20px;height:20px}
+.footer-contact a[aria-label*="فيسبوك"] svg{fill:currentColor;stroke:none}
+.footer-bottom{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:17px}
+.copyright,.footer-legal{font-family:'Cairo',sans-serif;font-size:10px;color:var(--muted);direction:rtl}
+.footer-legal{opacity:.8}
+.developer-credit{font-family:'Cairo',sans-serif;font-size:10px}
+@media(max-width:760px){
+ .footer{padding:32px 22px 17px}
+ .footer-main{grid-template-columns:1fr;gap:28px;padding-bottom:27px}
+ .footer-brand-block{max-width:none}
+ .footer-contact-area{justify-content:flex-start;gap:clamp(28px,9vw,65px);flex-wrap:wrap}
+ .contact-group{min-width:0}
+ .footer-bottom{justify-content:center;text-align:center;gap:9px;flex-direction:column}
+ .copyright,.footer-legal,.developer-credit{width:100%;text-align:center}
+}
