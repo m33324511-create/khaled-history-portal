@@ -35,7 +35,7 @@
       const result = await response.json();
       if (!response.ok) throw new Error(result.message || 'تعذر تسجيل الدخول. راجع بياناتك أو تواصل مع الإدارة.');
       message.textContent = result.message || 'تم التحقق بنجاح.';
-      // The student dashboard is the next implementation stage.
+      await loadStudentHome();
     } catch (error) {
       message.textContent = error.message.includes('404') || error.message.includes('Failed to fetch')
         ? 'خدمة تسجيل الدخول لم تُفعّل بعد. اربط قاعدة D1 وانشر وظائف Pages أولًا.'
@@ -162,9 +162,6 @@
     try{await studentApi('/api/student/logout',{method:'POST',body:'{}'});}catch{}
     dashboard.hidden=true;document.querySelector('main').hidden=false;document.querySelector('.footer').hidden=false;dashboard.innerHTML='';
   }
-  form.addEventListener('submit', async event => {
-    // Existing handler above is replaced below by a capture-safe dashboard redirect.
-  }, true);
 
   // Resume a valid student session after a page refresh.
   studentApi('/api/student/exams').then(()=>loadStudentHome()).catch(()=>{});
