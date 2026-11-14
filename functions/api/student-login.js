@@ -33,7 +33,7 @@ export async function onRequestPost({ request, env }) {
   if (Number(recent?.n || 0) >= 10) return json({ message: 'محاولات دخول كثيرة. انتظر قليلًا ثم حاول مجددًا.' }, 429);
 
   const student = await env.DB.prepare(
-    'SELECT id, full_name, student_code, group_id FROM students WHERE full_name = ? COLLATE NOCASE AND phone = ? AND student_code = ? AND is_active = 1 LIMIT 1'
+    'SELECT id, full_name, student_code, group_id FROM students WHERE full_name = ? COLLATE NOCASE AND REPLACE(REPLACE(phone, ' ', ''), '-', '') = ? AND student_code = ? AND is_active = 1 LIMIT 1'
   ).bind(name, phone, studentCode).first();
   await env.DB.prepare("INSERT INTO auth_attempts (id,ip_address,identity,success) VALUES (?,?,?,?)").bind(crypto.randomUUID(),ip,studentCode,student?1:0).run();
   if (!student) return json({ message: 'البيانات غير متطابقة أو الحساب غير مفعل. راجع الإدارة.' }, 401);
