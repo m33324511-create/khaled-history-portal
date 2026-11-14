@@ -84,7 +84,7 @@
     document.getElementById('refreshStudentExams').onclick=loadStudentHome;
     const grid=document.getElementById('studentExamGrid');
     if(!data.exams.length){grid.innerHTML='<div class="student-empty">لا توجد امتحانات منشورة لمجموعتك حاليًا.</div>';}
-    grid.innerHTML=data.exams.map(exam=>{
+    else grid.innerHTML=data.exams.map(exam=>{
       const state=exam.active_attempt?'لديك محاولة جارية':!exam.available?'غير متاح حاليًا':exam.attempts_left<=0?'استنفدت المحاولات':'متاح للبدء';
       const disabled=!exam.can_start;
       return '<article class="student-exam-card"><div class="student-card-top"><span class="student-status '+(disabled?'muted':'ready')+'">'+state+'</span><span class="student-duration">◷ '+Number(exam.duration_minutes)+' دقيقة</span></div><h3>'+htmlSafe(exam.title)+'</h3><p>'+htmlSafe(exam.description||'امتحان إلكتروني لقياس مستواك.')+'</p><div class="student-exam-meta"><span>عدد الأسئلة: '+Number(exam.question_count)+'</span><span>المحاولات المتبقية: '+Number(exam.attempts_left)+'</span></div><button class="student-start" data-exam="'+htmlSafe(exam.id)+'" '+(disabled?'disabled':'')+'>'+(exam.active_attempt?'استكمال الامتحان':'بدء الامتحان')+' ←</button></article>';
