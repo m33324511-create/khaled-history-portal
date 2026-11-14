@@ -3,8 +3,14 @@
  $("#year").textContent=new Date().getFullYear();
  async function api(url,options={}) {
    const response=await fetch(url,{credentials:"same-origin",headers:{"Content-Type":"application/json",...(options.headers||{})},...options});
-   const data=await response.json().catch(()=>({message:"استجابة غير مفهومة من الخادم."}));
-   if(!response.ok) throw new Error(data.message||"حدث خطأ.");
+   const raw=await response.text();
+   let data;
+   try { data=JSON.parse(raw); }
+   catch {
+     const preview=raw.replace(/<[^>]*>/g," ").replace(/\\s+/g," ").trim().slice(0,180);
+     throw new Error("الخادم أعاد استجابة غير متوقعة (HTTP "+response.status+"). "+(preview||"لم يصل رد نصي واضح."));
+   }
+   if(!response.ok) throw new Error(data.message||("حدث خطأ من الخادم (HTTP "+response.status+")."));
    return data;
  }
  function showAuth(setupNeeded) {
