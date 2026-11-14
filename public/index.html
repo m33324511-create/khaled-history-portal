@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/styles.css?v=student-exams-v3-20261115" />
+  <link rel="stylesheet" href="/styles.css?v=honors-roll-20261115" />
 </head>
 <body>
   <div class="site-shell">
@@ -19,7 +19,7 @@
         <span class="brand-copy"><b>بوابة التاريخ</b><small>MR. KHALED IBRAHIM</small></span>
       </a>
       <nav class="desktop-nav" aria-label="القائمة الرئيسية">
-        <a href="#home" class="active">الرئيسية</a><a href="#about">عن الأستاذ</a><a href="#features">مميزات المنصة</a><a href="#journey">رحلتك التعليمية</a>
+        <a href="#home" class="active">الرئيسية</a><a href="#about">عن الأستاذ</a><a href="#features">مميزات المنصة</a><a href="#journey">رحلتك التعليمية</a><a href="#honors">لائحة الشرف</a>
       </nav>
       <div class="top-actions">
         <button class="theme-toggle" id="themeToggle" type="button" aria-label="تغيير الوضع"><span class="theme-icon">☾</span><span class="theme-label">الوضع الداكن</span></button>
@@ -65,6 +65,17 @@
         </div>
       </section>
 
+      <section class="honors-section section-pad" id="honors">
+        <div class="section-heading"><div><div class="section-kicker">03 / HONORS ROLL</div><h2>نجوم <span>لائحة الشرف.</span></h2></div><p>نحتفي بطلابنا المتميزين في مادة التاريخ بالصفوف الأول والثاني والثالث الثانوي.</p></div>
+        <div class="honors-filters" role="group" aria-label="تصفية لائحة الشرف">
+          <button class="honor-filter active" type="button" data-honor-grade="">كل الصفوف</button>
+          <button class="honor-filter" type="button" data-honor-grade="الصف الأول الثانوي">الأول الثانوي</button>
+          <button class="honor-filter" type="button" data-honor-grade="الصف الثاني الثانوي">الثاني الثانوي</button>
+          <button class="honor-filter" type="button" data-honor-grade="الصف الثالث الثانوي">الثالث الثانوي</button>
+        </div>
+        <div id="honorsGrid" class="honors-grid"><div class="honors-empty">جارٍ تحميل لائحة الشرف…</div></div>
+      </section>
+
       <section class="journey section-pad" id="journey"><div class="journey-art"><div class="journey-ring"></div><div class="journey-symbol">𓆣</div><span class="journey-caption">PAST · PRESENT · FUTURE</span></div><div class="journey-copy"><div class="section-kicker">03 / START YOUR JOURNEY</div><h2>خطوتك الأولى<br>تبدأ <span>من هنا.</span></h2><p>حسابك يتم إنشاؤه مسبقًا بواسطة إدارة المنصة. استخدم بياناتك المسجلة للدخول ومتابعة رحلتك التعليمية.</p><button class="primary-btn" data-open-login>تسجيل دخول الطلاب <span>←</span></button></div></section>
     </main>
 
@@ -98,6 +109,6 @@
     </div>
   </div>
   <div class="toast" id="toast" role="status"></div>
-  <script src="/app.js?v=student-exams-v3-20261115"></script>
+  <script src="/app.js?v=honors-roll-20261115"></script>
 </body>
 </html>
