@@ -79,17 +79,27 @@
     clearInterval(examTimer); activeAttempt=null;
     const data=await studentApi('/api/student/exams');
     showStudentDashboard();
-    dashboard.innerHTML = '<div class="student-wrap"><div class="student-top"><div><span class="student-kicker">STUDENT SPACE</span><h1>مرحبًا، '+htmlSafe(data.student.full_name)+'</h1><p>الرقم التعريفي: '+htmlSafe(data.student.student_code)+'</p></div><button id="studentLogout" class="student-logout">تسجيل الخروج</button></div><div class="student-heading"><div><span class="student-kicker">YOUR EXAMS</span><h2>الامتحانات المتاحة</h2></div><button id="refreshStudentExams" class="student-secondary">تحديث</button></div><div id="studentExamMessage" class="student-message"></div><div id="studentExamGrid" class="student-exam-grid"></div></div>';
+    dashboard.innerHTML = '<div class="student-wrap"><div class="student-top"><div><span class="student-kicker">STUDENT SPACE</span><h1>مرحبًا، '+htmlSafe(data.student.full_name)+'</h1><p>الرقم التعريفي: '+htmlSafe(data.student.student_code)+'</p></div><button id="studentLogout" class="student-logout">تسجيل الخروج</button></div><div class="student-heading"><div><span class="student-kicker">YOUR EXAMS</span><h2>الامتحانات المتاحة</h2></div><button id="refreshStudentExams" class="student-secondary">تحديث</button></div><div id="studentExamMessage" class="student-message"></div><div id="studentExamGrid" class="student-exam-grid"></div><div class="student-heading history-heading"><div><span class="student-kicker">YOUR ACTIVITY</span><h2>سجل المحاولات والنتائج</h2></div></div><div id="studentHistory" class="student-history"></div></div>';
     document.getElementById('studentLogout').onclick=studentLogout;
     document.getElementById('refreshStudentExams').onclick=loadStudentHome;
     const grid=document.getElementById('studentExamGrid');
-    if(!data.exams.length){grid.innerHTML='<div class="student-empty">لا توجد امتحانات منشورة لمجموعتك حاليًا.</div>';return;}
+    if(!data.exams.length){grid.innerHTML='<div class="student-empty">لا توجد امتحانات منشورة لمجموعتك حاليًا.</div>';}
     grid.innerHTML=data.exams.map(exam=>{
       const state=exam.active_attempt?'لديك محاولة جارية':!exam.available?'غير متاح حاليًا':exam.attempts_left<=0?'استنفدت المحاولات':'متاح للبدء';
       const disabled=!exam.can_start;
       return '<article class="student-exam-card"><div class="student-card-top"><span class="student-status '+(disabled?'muted':'ready')+'">'+state+'</span><span class="student-duration">◷ '+Number(exam.duration_minutes)+' دقيقة</span></div><h3>'+htmlSafe(exam.title)+'</h3><p>'+htmlSafe(exam.description||'امتحان إلكتروني لقياس مستواك.')+'</p><div class="student-exam-meta"><span>عدد الأسئلة: '+Number(exam.question_count)+'</span><span>المحاولات المتبقية: '+Number(exam.attempts_left)+'</span></div><button class="student-start" data-exam="'+htmlSafe(exam.id)+'" '+(disabled?'disabled':'')+'>'+(exam.active_attempt?'استكمال الامتحان':'بدء الامتحان')+' ←</button></article>';
     }).join('');
+
     grid.querySelectorAll('[data-exam]').forEach(button=>button.onclick=()=>startStudentExam(button.dataset.exam,button));
+    const history=document.getElementById('studentHistory');
+    const attempts=data.attempts||[];
+    if(!attempts.length){history.innerHTML='<div class="student-empty">لم تسجل أي محاولة حتى الآن.</div>';return;}
+    history.innerHTML=attempts.map(a=>{
+      const status=a.status==='in_progress'?'محاولة جارية':a.status==='graded'?'تم التصحيح':a.status==='expired'?'انتهى الوقت':'بانتظار التصحيح';
+      const score=a.score!==null?'النتيجة: '+Number(a.score).toFixed(2):a.status==='submitted'?'الأسئلة المقالية بانتظار التصحيح':'النتيجة غير متاحة حاليًا';
+      return '<article class="student-history-row"><div><b>'+htmlSafe(a.exam_title)+'</b><small>المحاولة '+Number(a.attempt_number)+' · '+status+'</small><small>'+score+'</small></div><button class="student-secondary" data-attempt="'+htmlSafe(a.id)+'">'+(a.status==='in_progress'?'استكمال':'عرض الحالة')+'</button></article>';
+    }).join('');
+    history.querySelectorAll('[data-attempt]').forEach(button=>button.onclick=()=>openStudentAttempt(button.dataset.attempt));
   }
   async function startStudentExam(examId,button) {
     button.disabled=true;button.textContent='جارٍ فتح الامتحان…';
@@ -145,7 +155,7 @@
     if(!auto&&!confirm('هل أنت متأكد من تسليم الامتحان نهائيًا؟ لن تتمكن من تعديل إجاباتك بعد التسليم.')){if(button)button.disabled=false;return;}
     clearTimeout(saveTimer);clearInterval(examTimer);
     try{await saveStudentAnswers(true);await openStudentAttempt(activeAttempt.id);}
-    catch(e){const state=document.getElementById('studentSaveState');if(state)state.textContent=e.message;if(button)button.disabled=false;}
+    catch(e){const state=document.getElementById('studentSaveState');if(state)state.textContent=e.message;if(button)button.disabled=false;if(Date.now()>=Date.parse(activeAttempt.deadline)){try{await openStudentAttempt(activeAttempt.id);}catch{}}}
   }
   function renderAttemptFinished(data) {
     const a=data.attempt;
