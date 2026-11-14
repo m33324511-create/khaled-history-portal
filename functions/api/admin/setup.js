@@ -14,8 +14,12 @@ export async function onRequestPost({request,env}) {
     return json({message:"أدخل اسمًا صحيحًا، واسم مستخدم من 4 أحرف على الأقل، وكلمة مرور لا تقل عن 12 حرفًا."},400);
   const id=crypto.randomUUID();
   const passwordHash=await hashPassword(password);
-  await env.DB.prepare("INSERT INTO admins (id,full_name,username,password_hash,role,permissions_json) VALUES (?,?,?,?,?,?)")
-    .bind(id,name,username,passwordHash,"super_admin",'["*"]').run();
+  try {
+    await env.DB.prepare("INSERT INTO admins (id,full_name,username,password_hash,role,permissions_json) VALUES (?,?,?,?,?,?)")
+      .bind(id,name,username,passwordHash,"super_admin",'["*"]').run();
+  } catch {
+    return json({message:"تم إنشاء حساب الإدارة بالفعل أو اسم المستخدم مستخدم."},409);
+  }
   await env.DB.prepare("INSERT INTO audit_logs (id,actor_admin_id,action,target_type,target_id,details_json) VALUES (?,?,?,?,?,?)")
     .bind(crypto.randomUUID(),id,"initial_admin_created","admin",id,JSON.stringify({username})).run();
   const token=await issueSession({sub:id,kind:"admin",exp:Math.floor(Date.now()/1000)+8*60*60},env.SESSION_SECRET);
