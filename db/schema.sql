@@ -100,3 +100,5 @@ CREATE TABLE IF NOT EXISTS auth_attempts (
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS idx_auth_attempts_ip_time ON auth_attempts(ip_address, created_at, success);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_single_super_admin ON admins(role) WHERE role='super_admin';
