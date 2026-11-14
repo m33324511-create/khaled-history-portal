@@ -5,5 +5,4 @@ compatibility_date = "2026-11-14"
 [[d1_databases]]
 binding = "DB"
 database_name = "khaled-history-db"
-database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
-preview_database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+database_id = "44aae2ec-7218-4996-af2b-66e4915266b9"
