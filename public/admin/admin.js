@@ -211,13 +211,50 @@
      wrap.scrollIntoView({behavior:"smooth",block:"start"});
    }catch(e){wrap.innerHTML='<div class="notice">'+esc(e.message)+'</div>';}
  }
- async function showPlaceholder(tab,label){
-   currentTab=tab;$("#panel").innerHTML="<h2>"+esc(label)+"</h2><p class='notice'>سيتم تفعيل هذا القسم في مرحلة مستقلة بعد اختبار إدارة الطلاب.</p>";
+ async function renderAdmins(){
+   currentTab="admins";const panel=$("#panel");
+   panel.innerHTML='<div class="section-head"><div><h2>إدارة المشرفين</h2><p>إنشاء حسابات إدارية ومتابعة حالتها. لا يمكن حذف السجلات أو تعطيل المدير الحالي.</p></div><button id="addAdminBtn" class="primary">＋ إضافة مشرف</button></div><div id="adminFormWrap"></div><div id="adminsNotice" class="notice">جارٍ تحميل الحسابات…</div><div class="table-wrap"><table class="students-table"><thead><tr><th>الاسم</th><th>اسم المستخدم</th><th>الدور</th><th>الحالة</th><th>تاريخ الإنشاء</th><th>الإجراء</th></tr></thead><tbody id="adminsRows"></tbody></table></div>';
+   $("#addAdminBtn").onclick=()=>adminForm();await loadAdmins();
+ }
+ async function loadAdmins(){
+   const notice=$("#adminsNotice"),rows=$("#adminsRows");if(!notice||!rows)return;
+   try{const data=await api("/api/admin/admins");const admins=data.admins||[];
+     notice.textContent="عدد الحسابات الإدارية: "+admins.length;
+     rows.innerHTML=admins.map(a=>'<tr><td>'+esc(a.full_name)+'</td><td><code>'+esc(a.username)+'</code></td><td>'+esc(({super_admin:"مدير رئيسي",teacher:"معلم",supervisor:"مشرف",exam_monitor:"مراقب امتحان"})[a.role]||a.role)+'</td><td><span class="state '+(a.is_active?"on":"off")+'">'+(a.is_active?"نشط":"معطّل")+'</span></td><td>'+esc(a.created_at||"—")+'</td><td class="actions"><button class="mini '+(a.is_active?"danger":"activate")+'" data-admin-toggle="'+esc(a.id)+'" data-active="'+(a.is_active?1:0)+'" '+(a.is_self||a.role==="super_admin"?"disabled title=\"لا يمكن تعطيل هذا الحساب من هنا\"":"")+'>'+(a.is_active?"تعطيل":"تفعيل")+'</button></td></tr>').join("");
+     rows.querySelectorAll("[data-admin-toggle]").forEach(b=>b.onclick=()=>toggleAdmin(b.dataset.adminToggle,b.dataset.active==="1"));
+   }catch(e){notice.textContent=e.message;}
+ }
+ function adminForm(){
+   const wrap=$("#adminFormWrap");
+   wrap.innerHTML='<form id="adminEditor" class="student-editor"><div class="section-head"><h3>إنشاء حساب مشرف</h3><button type="button" id="cancelAdmin" class="ghost">إغلاق</button></div><div class="student-fields"><label>الاسم الكامل<input name="full_name" required minlength="3" maxlength="100"></label><label>اسم المستخدم<input name="username" required minlength="4" maxlength="40" pattern="[A-Za-z0-9._-]+"></label><label>كلمة المرور المؤقتة<input name="password" type="password" required minlength="12" maxlength="128" autocomplete="new-password"></label><label>الدور<select name="role"><option value="supervisor">مشرف</option><option value="teacher">معلم</option><option value="exam_monitor">مراقب امتحان</option></select></label></div><p class="caption">يجب تسليم المشرف كلمة المرور المؤقتة بشكل آمن، ويمكنه استخدامها لتسجيل الدخول.</p><div class="form-actions"><button class="primary">إنشاء الحساب</button><span id="adminFormMsg" role="status"></span></div></form>';
+   $("#cancelAdmin").onclick=()=>wrap.innerHTML="";
+   $("#adminEditor").onsubmit=async e=>{e.preventDefault();const button=e.submitter;button.disabled=true;$("#adminFormMsg").textContent="جارٍ إنشاء الحساب…";
+     try{await api("/api/admin/admins",{method:"POST",body:JSON.stringify(Object.fromEntries(new FormData(e.currentTarget)))});wrap.innerHTML="";await loadAdmins();await refreshStats();}
+     catch(err){$("#adminFormMsg").textContent=err.message;button.disabled=false;}
+   };
+ }
+ async function toggleAdmin(id,active){
+   if(!confirm(active?"تعطيل حساب هذا المشرف؟ لن يتمكن من تسجيل الدخول.":"إعادة تفعيل حساب هذا المشرف؟"))return;
+   try{await api("/api/admin/admins",{method:"PUT",body:JSON.stringify({id,is_active:!active})});await loadAdmins();await refreshStats();}
+   catch(e){alert(e.message);}
+ }
+ async function renderLogs(){
+   currentTab="logs";const panel=$("#panel");
+   panel.innerHTML='<div class="section-head"><div><h2>سجل العمليات</h2><p>عرض أحدث العمليات الإدارية المسجلة على البوابة.</p></div><button id="refreshLogs" class="ghost">تحديث</button></div><div class="student-tools"><input id="logSearch" placeholder="ابحث باسم المسؤول أو نوع العملية أو القسم"><button id="searchLogs" class="ghost">بحث</button></div><div id="logsNotice" class="notice">جارٍ تحميل سجل العمليات…</div><div class="table-wrap"><table class="students-table"><thead><tr><th>التاريخ</th><th>المسؤول</th><th>العملية</th><th>القسم</th><th>التفاصيل</th></tr></thead><tbody id="logsRows"></tbody></table></div>';
+   $("#refreshLogs").onclick=()=>loadLogs();$("#searchLogs").onclick=()=>loadLogs($("#logSearch").value.trim());$("#logSearch").addEventListener("keydown",e=>{if(e.key==="Enter")loadLogs(e.target.value.trim());});await loadLogs();
+ }
+ async function loadLogs(q=""){
+   const notice=$("#logsNotice"),rows=$("#logsRows");if(!notice||!rows)return;
+   try{const data=await api("/api/admin/logs?q="+encodeURIComponent(q));const logs=data.logs||[];
+     notice.textContent="عدد العمليات المعروضة: "+logs.length;
+     rows.innerHTML=logs.map(l=>{let details="";try{const d=JSON.parse(l.details_json||"{}");details=Object.entries(d).map(([k,v])=>k+": "+String(v)).join(" · ");}catch{details=l.details_json||"";}return '<tr><td>'+esc(l.created_at||"—")+'</td><td>'+esc(l.admin_name||"نظام")+'</td><td><code>'+esc(l.action)+'</code></td><td>'+esc(l.target_type||"—")+'</td><td>'+esc(details||l.target_id||"—")+'</td></tr>';}).join("");
+     if(!logs.length)rows.innerHTML='<tr><td colspan="5">لا توجد عمليات مطابقة.</td></tr>';
+   }catch(e){notice.textContent=e.message;}
  }
  async function init(){try{const state=await api("/api/admin/me");if(state.authenticated)await showDashboard(state.admin);else showAuth(state.setupRequired);}catch(e){showAuth(false);msg.textContent=e.message;}}
  login.addEventListener("submit",async e=>{e.preventDefault();msg.textContent="جارٍ التحقق…";const f=new FormData(login);try{const r=await api("/api/admin/login",{method:"POST",body:JSON.stringify(Object.fromEntries(f))});currentTab="overview";await showDashboard(r.admin);}catch(err){msg.textContent=err.message;}});
  setup.addEventListener("submit",async e=>{e.preventDefault();msg.textContent="جارٍ إنشاء الحساب…";const f=new FormData(setup);try{const r=await api("/api/admin/setup",{method:"POST",body:JSON.stringify(Object.fromEntries(f))});await showDashboard(r.admin);}catch(err){msg.textContent=err.message;}});
  $("#logoutBtn").addEventListener("click",async()=>{try{await api("/api/admin/logout",{method:"POST",body:"{}"});}finally{location.reload();}});
- document.querySelectorAll("[data-tab]").forEach(btn=>btn.addEventListener("click",async()=>{document.querySelectorAll("[data-tab]").forEach(x=>x.classList.remove("active"));btn.classList.add("active");const tab=btn.dataset.tab;if(tab==="students")await renderStudents();else if(tab==="groups")await renderGroups();else if(tab==="exams")await renderExams();else if(tab==="results")await renderResults();else if(tab==="overview"){currentTab="overview";$("#panel").innerHTML="<h2>نظرة عامة</h2><div id='stats' class='stats'></div>";await refreshStats();}else await showPlaceholder(tab,btn.textContent);}));
+ document.querySelectorAll("[data-tab]").forEach(btn=>btn.addEventListener("click",async()=>{document.querySelectorAll("[data-tab]").forEach(x=>x.classList.remove("active"));btn.classList.add("active");const tab=btn.dataset.tab;if(tab==="students")await renderStudents();else if(tab==="groups")await renderGroups();else if(tab==="exams")await renderExams();else if(tab==="results")await renderResults();else if(tab==="admins")await renderAdmins();else if(tab==="logs")await renderLogs();else if(tab==="overview"){currentTab="overview";$("#panel").innerHTML="<h2>نظرة عامة</h2><div id='stats' class='stats'></div>";await refreshStats();}}));
  init();
 })();
