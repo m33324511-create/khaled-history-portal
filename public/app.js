@@ -137,7 +137,7 @@
       else control='<div class="student-options">'+q.options.map(option=>'<label class="student-option"><input type="radio" name="answer-'+htmlSafe(q.id)+'" data-question="'+htmlSafe(q.id)+'" value="'+htmlSafe(option)+'" '+(answer===option?'checked':'')+'><span>'+htmlSafe(option)+'</span></label>').join('')+'</div>';
       return '<article class="student-question"><div class="question-label">السؤال '+(i+1)+' <span>'+Number(q.points)+' درجات</span></div><h3>'+htmlSafe(q.question_text)+'</h3>'+control+'</article>';
     }).join('')+'</div><div class="exam-submit-row"><span id="studentSaveState">تم تحميل إجاباتك</span><button id="submitStudentExam" class="student-submit">تسليم الامتحان</button></div></div>';
-    document.getElementById('backToExams').onclick=()=>{if(confirm('العودة إلى القائمة؟ ستظل محاولتك محفوظة ويمكنك استكمالها قبل انتهاء الوقت.'))loadStudentHome();};
+    document.getElementById('backToExams').onclick=async()=>{if(confirm('العودة إلى القائمة؟ ستظل محاولتك محفوظة ويمكنك استكمالها قبل انتهاء الوقت.')){clearTimeout(saveTimer);try{await saveStudentAnswers(false);}catch{}await loadStudentHome();}};
     dashboard.querySelectorAll('[data-question]').forEach(input=>input.addEventListener(input.type==='radio'?'change':'input',scheduleAnswerSave));
     document.getElementById('submitStudentExam').onclick=()=>submitStudentAttempt(false);
     updateExamClock();
@@ -169,6 +169,7 @@
   }
   async function studentLogout() {
     clearInterval(examTimer);clearTimeout(saveTimer);
+    try{if(activeAttempt?.status==='in_progress')await saveStudentAnswers(false);}catch{}
     try{await studentApi('/api/student/logout',{method:'POST',body:'{}'});}catch{}
     dashboard.hidden=true;document.querySelector('main').hidden=false;document.querySelector('.footer').hidden=false;dashboard.innerHTML='';
   }
