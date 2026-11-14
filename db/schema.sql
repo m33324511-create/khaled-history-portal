@@ -91,3 +91,12 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   details_json TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS auth_attempts (
+  id TEXT PRIMARY KEY,
+  ip_address TEXT NOT NULL,
+  identity TEXT NOT NULL,
+  success INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_auth_attempts_ip_time ON auth_attempts(ip_address, created_at, success);
