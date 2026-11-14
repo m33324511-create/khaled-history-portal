@@ -105,7 +105,7 @@
   function saveStudentAnswers(submit=false) {
     if(!activeAttempt)return Promise.resolve();
     const payload={attempt_id:activeAttempt.id,answers:currentAnswers(),submit};
-    saving=saving.then(()=>studentApi('/api/student/attempt',{method:'PUT',body:JSON.stringify(payload)}));
+    saving=saving.catch(()=>{}).then(()=>studentApi('/api/student/attempt',{method:'PUT',body:JSON.stringify(payload)}));
     return saving;
   }
   function scheduleAnswerSave() {
