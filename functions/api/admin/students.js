@@ -7,7 +7,7 @@ async function audit(env, admin, action, targetId, details = {}) {
 }
 async function groupExists(env, groupId) {
   if (!groupId) return true;
-  return !!(await env.DB.prepare("SELECT id FROM study_groups WHERE id=? AND is_active=1").bind(groupId).first());
+  return !!(await env.DB.prepare("SELECT id FROM study_groups WHERE id=?").bind(groupId).first());
 }
 export async function onRequestGet({ request, env }) {
   const admin = await requireAdmin(request, env);
