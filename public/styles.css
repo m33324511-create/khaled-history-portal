@@ -48,3 +48,67 @@
 .photo-glow{inset:4% -4% 0;opacity:.16}
 @media(max-width:1000px){.photo-frame{height:450px;width:82%;right:9%}}
 @media(max-width:680px){.photo-frame{height:370px;width:78%;right:11%}.photo-frame:before{inset:6% -5% 0}.photo-frame img{object-position:50% 13%}}
+
+/* Student exam workspace */
+[hidden]{display:none!important}
+.student-dashboard{min-height:calc(100vh - 82px);padding:48px clamp(18px,6vw,90px) 80px;background:radial-gradient(ellipse at 85% 5%,var(--accent-soft),transparent 35%),var(--bg)}
+.student-wrap{max-width:1120px;margin:0 auto}
+.student-top,.student-heading,.exam-live-head,.exam-submit-row{display:flex;align-items:center;justify-content:space-between;gap:18px}
+.student-top{padding-bottom:28px;border-bottom:1px solid var(--line)}
+.student-kicker{font:800 10px Manrope,sans-serif;letter-spacing:2px;color:var(--accent);direction:ltr;display:block}
+.student-top h1,.exam-live-head h1{font-size:clamp(23px,3vw,34px);margin:8px 0 3px}
+.student-top p{color:var(--muted);font-size:12px;margin:0}
+.student-logout,.student-secondary{border:1px solid var(--line);border-radius:9px;padding:10px 15px;background:var(--surface);color:var(--text);font-size:11px}
+.student-heading{margin:35px 0 18px}
+.student-heading h2{font-size:23px;margin:7px 0 0}
+.student-message{color:var(--warm);font-size:12px;margin:10px 0}
+.student-exam-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.student-exam-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px;box-shadow:var(--shadow)}
+.student-card-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.student-status{font-size:10px;border-radius:30px;padding:6px 10px;background:var(--accent-soft);color:var(--accent)}
+.student-status.muted{background:var(--surface2);color:var(--muted)}
+.student-duration{font-size:10px;color:var(--muted)}
+.student-exam-card h3{font-size:19px;margin:18px 0 7px}
+.student-exam-card>p{font-size:12px;line-height:1.9;color:var(--muted);min-height:45px}
+.student-exam-meta{display:flex;flex-wrap:wrap;gap:15px;border-top:1px solid var(--line);padding-top:14px;margin-top:15px;font-size:10px;color:var(--muted)}
+.student-start,.student-submit{border:0;border-radius:9px;padding:12px 18px;background:var(--accent);color:#082027;font-weight:800;font-size:12px;margin-top:18px}
+.student-start:disabled{opacity:.45;cursor:not-allowed}
+.student-empty,.student-finished{padding:45px 20px;text-align:center;border:1px solid var(--line);border-radius:16px;background:var(--surface);color:var(--muted)}
+.exam-live-head{padding-bottom:20px;border-bottom:1px solid var(--line)}
+.exam-live-head>div:nth-child(2){flex:1}
+.exam-live-head h1{font-size:22px}
+.exam-clock{font:800 24px Manrope,sans-serif;direction:ltr;color:var(--warm);background:var(--surface);border:1px solid var(--line);padding:10px 15px;border-radius:12px;min-width:95px;text-align:center}
+.exam-instructions{padding:15px 18px;border:1px solid var(--line);border-radius:12px;background:var(--accent-soft);color:var(--muted);font-size:11px;line-height:1.9;margin:22px 0}
+.exam-question-list{display:grid;gap:14px}
+.student-question{padding:22px;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+.question-label{display:flex;justify-content:space-between;color:var(--accent);font-size:11px;font-weight:800}
+.question-label span{color:var(--muted);font-weight:500}
+.student-question h3{font-size:15px;line-height:1.9;margin:15px 0 18px}
+.student-options{display:grid;gap:9px}
+.student-option{display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--line);border-radius:9px;background:var(--bg);font-size:12px;cursor:pointer}
+.student-option:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.student-option input{accent-color:var(--accent)}
+.student-essay{width:100%;resize:vertical;padding:13px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--text);font:inherit;font-size:12px;line-height:1.9}
+.student-essay:focus{outline:1px solid var(--accent)}
+.exam-submit-row{position:sticky;bottom:12px;margin-top:22px;padding:14px 18px;border:1px solid var(--line);border-radius:13px;background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(14px);box-shadow:var(--shadow)}
+.exam-submit-row span{font-size:10px;color:var(--muted)}
+.exam-submit-row .student-submit{margin:0}
+.student-finished{max-width:650px;margin:70px auto;padding:48px 24px}
+.finished-symbol{width:65px;height:65px;border-radius:50%;display:grid;place-items:center;margin:0 auto 20px;background:var(--accent-soft);color:var(--accent);font-size:32px}
+.student-finished h1{color:var(--text);font-size:27px}
+.student-finished p{line-height:2;font-size:14px}
+@media(max-width:680px){
+ .student-dashboard{min-height:calc(100vh - 70px);padding:25px 15px 55px}
+ .student-exam-grid{grid-template-columns:1fr}
+ .student-top{align-items:flex-start}
+ .student-top h1{font-size:23px}
+ .student-heading h2{font-size:20px}
+ .exam-live-head{flex-wrap:wrap}
+ .exam-live-head>div:nth-child(2){order:-1;flex-basis:100%}
+ .exam-clock{font-size:20px;min-width:82px}
+ .student-question{padding:17px}
+ .student-question h3{font-size:14px}
+ .exam-submit-row{gap:10px;padding:10px}
+ .exam-submit-row span{max-width:48%;line-height:1.7}
+ .exam-submit-row .student-submit{padding:11px 13px;font-size:11px}
+}
