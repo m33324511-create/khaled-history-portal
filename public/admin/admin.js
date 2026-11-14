@@ -21,7 +21,7 @@
  async function showDashboard(admin) {
    authView.classList.add("hidden");dashboard.classList.remove("hidden");$("#adminName").textContent=admin.full_name;
    try{await refreshStats();}catch(e){$("#stats").textContent=e.message;}
-   if(currentTab==="students") await renderStudents(); else if(currentTab==="groups") await renderGroups();
+   if(currentTab==="students") await renderStudents(); else if(currentTab==="groups") await renderGroups(); else if(currentTab==="exams") await renderExams();
  }
  function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
  async function renderStudents(q=""){
@@ -97,6 +97,83 @@
    try{await api("/api/admin/groups",{method:"PUT",body:JSON.stringify({id,is_active:!active})});await loadGroups($("#groupSearch")?.value||"");await refreshStats();}
    catch(e){alert(e.message);}
  }
+
+ function dateInput(v){if(!v)return "";const d=String(v).replace(" ","T");return d.slice(0,16);}
+ function questionCard(q={},index=0){
+   const type=q.question_type||"mcq",opts=Array.isArray(q.options)?q.options:(q.options_json?JSON.parse(q.options_json):[]);
+   return '<div class="exam-question q-card"><div class="section-head"><b>السؤال <span class="q-number">'+(index+1)+'</span></b><button type="button" class="mini danger remove-question">حذف السؤال</button></div><label>نص السؤال<textarea class="q-text" rows="2" maxlength="2000" required>'+esc(q.question_text||"")+'</textarea></label><div class="student-fields"><label>نوع السؤال<select class="q-type"><option value="mcq" '+(type==="mcq"?"selected":"")+'>اختيار من متعدد</option><option value="true_false" '+(type==="true_false"?"selected":"")+'>صح أو خطأ</option><option value="essay" '+(type==="essay"?"selected":"")+'>مقالي</option></select></label><label>الدرجة<input class="q-points" type="number" min="0.25" max="1000" step="0.25" value="'+esc(q.points??1)+'" required></label></div><div class="q-options-wrap" '+(type==="mcq"?"":"hidden")+'><label>الاختيارات (كل اختيار في سطر منفصل)<textarea class="q-options" rows="4" placeholder="الاختيار الأول\nالاختيار الثاني">'+esc(opts.join("\n"))+'</textarea></label><label>الإجابة الصحيحة<input class="q-correct" value="'+esc(q.correct_answer||"")+'" placeholder="اكتب الإجابة المطابقة لأحد الاختيارات"></label></div><div class="q-true-wrap" '+(type==="true_false"?"":"hidden")+'><label>الإجابة الصحيحة<select class="q-true"><option value="صحيح" '+(q.correct_answer==="صحيح"?"selected":"")+'>صحيح</option><option value="خطأ" '+(q.correct_answer==="خطأ"?"selected":"")+'>خطأ</option></select></label></div><p class="q-essay-note" '+(type==="essay"?"":"hidden")+'>سيحتاج هذا السؤال إلى تصحيح يدوي بعد تسليم الطالب.</p></div>';
+ }
+ function bindQuestionCards(){
+   const wrap=$("#questionsWrap");
+   wrap.querySelectorAll(".q-card").forEach(card=>{
+     card.querySelector(".remove-question").onclick=()=>{card.remove();renumberQuestions();};
+     card.querySelector(".q-type").onchange=e=>{
+       const type=e.target.value;
+       card.querySelector(".q-options-wrap").hidden=type!=="mcq";
+       card.querySelector(".q-true-wrap").hidden=type!=="true_false";
+       card.querySelector(".q-essay-note").hidden=type!=="essay";
+     };
+   });
+ }
+ function renumberQuestions(){document.querySelectorAll("#questionsWrap .q-number").forEach((n,i)=>n.textContent=i+1);}
+ async function renderExams(){
+   currentTab="exams";const panel=$("#panel");
+   panel.innerHTML='<div class="section-head"><div><h2>إدارة الامتحانات الإلكترونية</h2><p>إنشاء الامتحانات وربطها بالمجموعات وإدارة الأسئلة والوقت والمحاولات.</p></div><button id="newExamBtn" class="primary">＋ إنشاء امتحان</button></div><div id="examEditorWrap"></div><div id="examsNotice" class="notice">جارٍ تحميل الامتحانات…</div><div class="table-wrap"><table class="students-table"><thead><tr><th>الامتحان</th><th>المجموعة</th><th>الأسئلة</th><th>المدة</th><th>المحاولات</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody id="examsRows"></tbody></table></div>';
+   $("#newExamBtn").onclick=()=>examForm();
+   await loadExams();
+ }
+ async function loadExams(){
+   const notice=$("#examsNotice"),rows=$("#examsRows");if(!notice||!rows)return;
+   try{
+     const data=await api("/api/admin/exams");const exams=data.exams||[];
+     notice.textContent="عدد الامتحانات: "+exams.length;
+     rows.innerHTML=exams.map(e=>'<tr><td><b>'+esc(e.title)+'</b><div class="caption">'+esc(e.created_at||"")+'</div></td><td>'+esc(e.group_name||"كل المجموعات")+'</td><td>'+Number(e.question_count||0)+'</td><td>'+Number(e.duration_minutes)+' دقيقة</td><td>'+Number(e.max_attempts)+'</td><td><span class="state '+(e.is_published?"on":"off")+'">'+(e.is_published?"منشور":"مسودة")+'</span></td><td class="actions"><button class="mini edit-exam" data-id="'+esc(e.id)+'">تعديل</button><button class="mini '+(e.is_published?"danger":"activate")+'" data-publish="'+esc(e.id)+'" data-value="'+(e.is_published?1:0)+'">'+(e.is_published?"إلغاء النشر":"نشر")+'</button><button class="mini danger delete-exam" data-id="'+esc(e.id)+'" '+(Number(e.attempt_count)>0?"disabled title='له محاولات محفوظة'":"") +'>حذف</button></td></tr>').join("");
+     rows.querySelectorAll(".edit-exam").forEach(b=>b.onclick=()=>editExam(b.dataset.id));
+     rows.querySelectorAll("[data-publish]").forEach(b=>b.onclick=()=>toggleExamPublish(b.dataset.publish,b.dataset.value==="1"));
+     rows.querySelectorAll(".delete-exam").forEach(b=>b.onclick=()=>deleteExam(b.dataset.id));
+   }catch(e){notice.textContent=e.message;}
+ }
+ async function examForm(exam=null,questions=[]){
+   const wrap=$("#examEditorWrap");if(!wrap)return;
+   let groups=[];try{groups=(await api("/api/admin/groups?status=active")).groups||[];}catch(e){$("#examsNotice").textContent=e.message;return;}
+   const qList=questions.length?questions:[{}];
+   wrap.innerHTML='<form id="examEditor" class="student-editor exam-editor"><div class="section-head"><h3>'+(exam?"تعديل الامتحان":"إنشاء امتحان جديد")+'</h3><button type="button" id="cancelExam" class="ghost">إغلاق</button></div><div class="student-fields"><label>عنوان الامتحان<input name="title" required minlength="3" maxlength="160" value="'+esc(exam?.title||"")+'"></label><label>المجموعة المستهدفة<select name="group_id"><option value="">كل المجموعات النشطة</option>'+groups.map(g=>'<option value="'+esc(g.id)+'" '+(exam?.group_id===g.id?"selected":"")+'>'+esc(g.name)+'</option>').join("")+'</select></label><label>مدة الامتحان بالدقائق<input name="duration_minutes" type="number" min="1" max="360" value="'+esc(exam?.duration_minutes??30)+'" required></label><label>عدد المحاولات المسموح بها<input name="max_attempts" type="number" min="1" max="10" value="'+esc(exam?.max_attempts??1)+'" required></label><label>يبدأ في (اختياري)<input name="opens_at" type="datetime-local" value="'+dateInput(exam?.opens_at)+'"></label><label>ينتهي في (اختياري)<input name="closes_at" type="datetime-local" value="'+dateInput(exam?.closes_at)+'"></label></div><label>وصف وتعليمات الامتحان<textarea name="description" rows="2" maxlength="2000">'+esc(exam?.description||"")+'</textarea></label><div class="student-fields"><label class="check-label"><input name="results_visible" type="checkbox" '+(exam?.results_visible?"checked":"")+'> إظهار النتيجة للطالب بعد التسليم</label><label class="check-label"><input name="is_published" type="checkbox" '+(exam?.is_published?"checked":"")+'> نشر الامتحان وإتاحته للطلاب</label></div><div class="section-head"><h3>أسئلة الامتحان</h3><button type="button" id="addQuestionBtn" class="ghost">＋ إضافة سؤال</button></div><div id="questionsWrap">'+qList.map((q,i)=>questionCard(q,i)).join("")+'</div><div class="form-actions"><button class="primary" id="saveExamBtn">'+(exam?"حفظ التعديلات":"إنشاء الامتحان")+'</button><span id="examFormMsg" role="status"></span></div></form>';
+   $("#cancelExam").onclick=()=>wrap.innerHTML="";
+   bindQuestionCards();
+   $("#addQuestionBtn").onclick=()=>{const holder=$("#questionsWrap");holder.insertAdjacentHTML("beforeend",questionCard({},holder.children.length));bindQuestionCards();renumberQuestions();};
+   if(exam&&Number(exam.attempt_count||0)>0){
+     $("#examEditor").querySelectorAll(".q-card input,.q-card textarea,.q-card select,.remove-question,#addQuestionBtn").forEach(el=>el.disabled=true);
+     $("#examFormMsg").textContent="بدأ الطلاب المحاولات؛ الأسئلة والدرجات مقفولة للحفاظ على السجلات.";
+   }
+   $("#examEditor").onsubmit=async e=>{
+     e.preventDefault();const button=$("#saveExamBtn");button.disabled=true;$("#examFormMsg").textContent="جارٍ الحفظ…";
+     const form=e.currentTarget,fd=new FormData(form),body=Object.fromEntries(fd.entries());
+     body.results_visible=form.elements.results_visible.checked;body.is_published=form.elements.is_published.checked;
+     body.opens_at=body.opens_at?new Date(body.opens_at).toISOString():null;body.closes_at=body.closes_at?new Date(body.closes_at).toISOString():null;
+     body.questions=[...$("#questionsWrap").querySelectorAll(".q-card")].map(card=>{
+       const type=card.querySelector(".q-type").value;
+       return {question_text:card.querySelector(".q-text").value,question_type:type,points:card.querySelector(".q-points").value,options:type==="mcq"?card.querySelector(".q-options").value.split("\n").map(x=>x.trim()).filter(Boolean):undefined,correct_answer:type==="mcq"?card.querySelector(".q-correct").value:type==="true_false"?card.querySelector(".q-true").value:null};
+     });
+     if(exam)body.id=exam.id;
+     try{await api("/api/admin/exams",{method:exam?"PUT":"POST",body:JSON.stringify(body)});wrap.innerHTML="";await loadExams();await refreshStats();}
+     catch(err){$("#examFormMsg").textContent=err.message;button.disabled=false;}
+   };
+ }
+ async function editExam(id){
+   try{const data=await api("/api/admin/exams?id="+encodeURIComponent(id));await examForm(data.exam,data.questions||[]);}
+   catch(e){alert(e.message);}
+ }
+ async function toggleExamPublish(id,published){
+   try{const data=await api("/api/admin/exams?id="+encodeURIComponent(id));const e=data.exam;
+     const body={id,title:e.title,description:e.description,group_id:e.group_id,duration_minutes:e.duration_minutes,max_attempts:e.max_attempts,opens_at:e.opens_at,closes_at:e.closes_at,results_visible:!!e.results_visible,is_published:!published,questions:(data.questions||[]).map(q=>({question_text:q.question_text,question_type:q.question_type,options:q.options_json?JSON.parse(q.options_json):[],correct_answer:q.correct_answer,points:q.points}))};
+     await api("/api/admin/exams",{method:"PUT",body:JSON.stringify(body)});await loadExams();await refreshStats();
+   }catch(e){alert(e.message);}
+ }
+ async function deleteExam(id){
+   if(!confirm("حذف هذا الامتحان نهائيًا؟ لا يمكن حذف امتحان له محاولات محفوظة."))return;
+   try{await api("/api/admin/exams?id="+encodeURIComponent(id),{method:"DELETE"});await loadExams();await refreshStats();}
+   catch(e){alert(e.message);}
+ }
  async function showPlaceholder(tab,label){
    currentTab=tab;$("#panel").innerHTML="<h2>"+esc(label)+"</h2><p class='notice'>سيتم تفعيل هذا القسم في مرحلة مستقلة بعد اختبار إدارة الطلاب.</p>";
  }
@@ -104,6 +181,6 @@
  login.addEventListener("submit",async e=>{e.preventDefault();msg.textContent="جارٍ التحقق…";const f=new FormData(login);try{const r=await api("/api/admin/login",{method:"POST",body:JSON.stringify(Object.fromEntries(f))});currentTab="overview";await showDashboard(r.admin);}catch(err){msg.textContent=err.message;}});
  setup.addEventListener("submit",async e=>{e.preventDefault();msg.textContent="جارٍ إنشاء الحساب…";const f=new FormData(setup);try{const r=await api("/api/admin/setup",{method:"POST",body:JSON.stringify(Object.fromEntries(f))});await showDashboard(r.admin);}catch(err){msg.textContent=err.message;}});
  $("#logoutBtn").addEventListener("click",async()=>{try{await api("/api/admin/logout",{method:"POST",body:"{}"});}finally{location.reload();}});
- document.querySelectorAll("[data-tab]").forEach(btn=>btn.addEventListener("click",async()=>{document.querySelectorAll("[data-tab]").forEach(x=>x.classList.remove("active"));btn.classList.add("active");const tab=btn.dataset.tab;if(tab==="students")await renderStudents();else if(tab==="groups")await renderGroups();else if(tab==="overview"){currentTab="overview";$("#panel").innerHTML="<h2>نظرة عامة</h2><div id='stats' class='stats'></div>";await refreshStats();}else await showPlaceholder(tab,btn.textContent);}));
+ document.querySelectorAll("[data-tab]").forEach(btn=>btn.addEventListener("click",async()=>{document.querySelectorAll("[data-tab]").forEach(x=>x.classList.remove("active"));btn.classList.add("active");const tab=btn.dataset.tab;if(tab==="students")await renderStudents();else if(tab==="groups")await renderGroups();else if(tab==="exams")await renderExams();else if(tab==="overview"){currentTab="overview";$("#panel").innerHTML="<h2>نظرة عامة</h2><div id='stats' class='stats'></div>";await refreshStats();}else await showPlaceholder(tab,btn.textContent);}));
  init();
 })();
