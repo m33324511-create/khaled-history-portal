@@ -96,6 +96,17 @@
   studentNavLink.href = '#studentDashboard';
   studentNavLink.textContent = 'مساحة الطالب';
   studentNavLink.hidden = true;
+  const topLogout = document.createElement('button');
+  topLogout.type = 'button';
+  topLogout.className = 'login-top';
+  topLogout.textContent = 'تسجيل الخروج';
+  topLogout.hidden = true;
+  topLogout.addEventListener('click', studentLogout);
+  document.querySelector('.top-actions').insertBefore(topLogout, menuToggle);
+  function syncStudentActions() {
+    document.querySelectorAll('[data-open-login]').forEach(button => { button.hidden = studentAuthenticated; });
+    topLogout.hidden = !studentAuthenticated || !dashboard.hidden;
+  }
   studentNavLink.addEventListener('click', event => {
     event.preventDefault();
     showStudentDashboard();
@@ -108,12 +119,14 @@
     publicFooter.hidden = true;
     dashboard.hidden = false;
     closeLogin();
+    syncStudentActions();
     dashboard.scrollIntoView({behavior:'smooth',block:'start'});
   }
   function showPublicSite(target) {
     dashboard.hidden = true;
     publicMain.hidden = false;
     publicFooter.hidden = false;
+    syncStudentActions();
     if (target) {
       const section = document.querySelector(target);
       if (section) section.scrollIntoView({behavior:'smooth',block:'start'});
@@ -132,6 +145,7 @@
     const data=await studentApi('/api/student/exams');
     studentAuthenticated = true;
     studentNavLink.hidden = false;
+    syncStudentActions();
     showStudentDashboard();
     dashboard.innerHTML = '<div class="student-wrap"><div class="student-top"><div><span class="student-kicker">STUDENT SPACE</span><h1>مرحبًا، '+htmlSafe(data.student.full_name)+'</h1><p>الرقم التعريفي: '+htmlSafe(data.student.student_code)+'</p></div><button id="studentLogout" class="student-logout">تسجيل الخروج</button></div><div class="student-heading"><div><span class="student-kicker">YOUR EXAMS</span><h2>الامتحانات المتاحة</h2></div><button id="refreshStudentExams" class="student-secondary">تحديث</button></div><div id="studentExamMessage" class="student-message"></div><div id="studentExamGrid" class="student-exam-grid"></div><div class="student-heading history-heading"><div><span class="student-kicker">YOUR ACTIVITY</span><h2>سجل المحاولات والنتائج</h2></div></div><div id="studentHistory" class="student-history"></div></div>';
     document.getElementById('studentLogout').onclick=studentLogout;
@@ -227,7 +241,7 @@
     clearInterval(examTimer);clearTimeout(saveTimer);
     try{if(activeAttempt?.status==='in_progress')await saveStudentAnswers(false);}catch{}
     try{await studentApi('/api/student/logout',{method:'POST',body:'{}'});}catch{}
-    studentAuthenticated=false;studentNavLink.hidden=true;dashboard.hidden=true;dashboard.innerHTML='';showPublicSite();
+    studentAuthenticated=false;studentNavLink.hidden=true;dashboard.hidden=true;dashboard.innerHTML='';syncStudentActions();showPublicSite();
   }
 
 
