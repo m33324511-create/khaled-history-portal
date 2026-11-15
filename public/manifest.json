@@ -1,0 +1,31 @@
+{
+  "name": "بوابة التاريخ | الأستاذ خالد إبراهيم",
+  "short_name": "بوابة التاريخ",
+  "description": "بوابتك التعليمية للتاريخ والامتحانات ومتابعة التقدم.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "orientation": "portrait-primary",
+  "background_color": "#101d2c",
+  "theme_color": "#101d2c",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
