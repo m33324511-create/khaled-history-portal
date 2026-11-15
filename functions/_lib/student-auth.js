@@ -3,7 +3,7 @@ export async function requireStudent(request,env){
   if(!env.DB||!env.SESSION_SECRET)return null;
   const session=await readSession(request,"student_session",env.SESSION_SECRET);
   if(!session||session.kind!=="student"||!session.sub)return null;
-  const student=await env.DB.prepare("SELECT id,full_name,phone,student_code,group_id,is_active FROM students WHERE id=? AND is_active=1 LIMIT 1").bind(session.sub).first();
+  const student=await env.DB.prepare("SELECT s.id,s.full_name,s.phone,s.student_code,s.group_id,s.is_active,g.grade FROM students s LEFT JOIN study_groups g ON g.id=s.group_id WHERE s.id=? AND s.is_active=1 LIMIT 1").bind(session.sub).first();
   return student||null;
 }
 export function parseSqliteUtc(value){
