@@ -102,6 +102,8 @@
     dashboard.innerHTML = '<div class="student-wrap"><div class="student-top"><div><span class="student-kicker">STUDENT SPACE</span><h1>مرحبًا، '+htmlSafe(data.student.full_name)+'</h1><p>الرقم التعريفي: '+htmlSafe(data.student.student_code)+'</p></div><button id="studentLogout" class="student-logout">تسجيل الخروج</button></div><div class="student-heading"><div><span class="student-kicker">YOUR EXAMS</span><h2>الامتحانات المتاحة</h2></div><button id="refreshStudentExams" class="student-secondary">تحديث</button></div><div id="studentExamMessage" class="student-message"></div><div id="studentExamGrid" class="student-exam-grid"></div><div class="student-heading history-heading"><div><span class="student-kicker">YOUR ACTIVITY</span><h2>سجل المحاولات والنتائج</h2></div></div><div id="studentHistory" class="student-history"></div></div>';
     document.getElementById('studentLogout').onclick=studentLogout;
     document.getElementById('refreshStudentExams').onclick=loadStudentHome;
+    const community=document.createElement('section');community.className='community-panel';community.innerHTML='<div class="student-heading"><div><span class="student-kicker">STUDENT COMMUNITY</span><h2>مجتمع '+htmlSafe(data.student.grade||'السنة الدراسية')+'</h2></div></div><div class="community-tabs"><button class="student-secondary active" data-c-tab="forum">المنتدى والأسئلة</button><button class="student-secondary" data-c-tab="chat">الشات العام</button></div><div id="communityForum"><form id="communityPostForm" class="community-compose"><input name="title" maxlength="140" required placeholder="عنوان السؤال أو الموضوع"><textarea name="body" maxlength="3000" required placeholder="اكتب سؤالك أو ابدأ نقاشًا مع زملائك…"></textarea><button class="student-start">نشر الموضوع</button></form><div id="communityPosts"></div></div><div id="communityChat" hidden><div id="communityMessages" class="community-messages"></div><form id="communityChatForm" class="community-compose chat-compose"><textarea name="body" maxlength="1500" required placeholder="اكتب رسالة لطلاب صفك…"></textarea><button class="student-start">إرسال</button></form></div>';dashboard.querySelector('.student-wrap').appendChild(community);initCommunity();
+
     const grid=document.getElementById('studentExamGrid');
     if(!data.exams.length){grid.innerHTML='<div class="student-empty">لا توجد امتحانات منشورة لمجموعتك حاليًا.</div>';}
     else grid.innerHTML=data.exams.map(exam=>{
@@ -192,6 +194,23 @@
     try{if(activeAttempt?.status==='in_progress')await saveStudentAnswers(false);}catch{}
     try{await studentApi('/api/student/logout',{method:'POST',body:'{}'});}catch{}
     dashboard.hidden=true;document.querySelector('main').hidden=false;document.querySelector('.footer').hidden=false;dashboard.innerHTML='';
+  }
+
+
+  let communityPoll=null;
+  async function communityApi(mode,body={},method='POST'){return studentApi('/api/student/community'+(method==='GET'?'?mode='+mode:''),{method,body:method==='GET'?undefined:JSON.stringify({mode,...body})});}
+  function initCommunity(){
+    const tabs=dashboard.querySelectorAll('[data-c-tab]');
+    tabs.forEach(t=>t.onclick=()=>{tabs.forEach(x=>x.classList.toggle('active',x===t));const chat=t.dataset.cTab==='chat';document.getElementById('communityForum').hidden=chat;document.getElementById('communityChat').hidden=!chat;loadCommunity(chat?'chat':'forum');});
+    document.getElementById('communityPostForm').onsubmit=async e=>{e.preventDefault();const b=Object.fromEntries(new FormData(e.currentTarget));try{await communityApi('post',b);e.currentTarget.reset();await loadCommunity('forum');}catch(x){alert(x.message);}};
+    document.getElementById('communityChatForm').onsubmit=async e=>{e.preventDefault();const input=e.currentTarget.elements.body;try{await communityApi('chat',{body:input.value});input.value='';await loadCommunity('chat');}catch(x){alert(x.message);}};
+    loadCommunity('forum');clearInterval(communityPoll);communityPoll=setInterval(()=>loadCommunity(document.getElementById('communityChat').hidden?'forum':'chat'),6000);
+  }
+  async function loadCommunity(mode){
+    try{const d=await communityApi(mode,{},'GET');
+      if(mode==='chat'){const box=document.getElementById('communityMessages');if(!box)return;box.innerHTML=(d.messages||[]).map(m=>'<div class="community-message '+(m.student_id===d.student_id?'mine':'')+'"><b>'+htmlSafe(m.full_name)+'</b><p>'+htmlSafe(m.body)+'</p><small>'+htmlSafe(m.created_at)+'</small></div>').join('')||'<div class="community-empty">لا توجد رسائل بعد. ابدأ الحديث!</div>';box.scrollTop=box.scrollHeight;}
+      else{const box=document.getElementById('communityPosts');if(!box)return;box.innerHTML=(d.posts||[]).map(p=>'<article class="community-post"><div class="community-meta"><b>'+htmlSafe(p.full_name)+'</b><span>'+htmlSafe(p.created_at)+'</span></div><h3>'+htmlSafe(p.title)+'</h3><p>'+htmlSafe(p.body)+'</p><div class="community-replies">'+(p.replies||[]).map(r=>'<div class="community-reply"><b>'+htmlSafe(r.full_name)+'</b><br>'+htmlSafe(r.body)+'</div>').join('')+'</div><form class="community-reply-form" data-post="'+htmlSafe(p.id)+'"><input name="body" maxlength="2000" required placeholder="اكتب ردك…"><button>رد</button></form></article>').join('')||'<div class="community-empty">لا توجد أسئلة حتى الآن. كن أول من يبدأ النقاش.</div>';box.querySelectorAll('.community-reply-form').forEach(f=>f.onsubmit=async e=>{e.preventDefault();try{await communityApi('reply',{post_id:f.dataset.post,body:new FormData(f).get('body')});await loadCommunity('forum');}catch(x){alert(x.message);}});}
+    }catch(e){const box=document.getElementById(mode==='chat'?'communityMessages':'communityPosts');if(box)box.innerHTML='<div class="community-empty">'+htmlSafe(e.message)+'</div>';}
   }
 
   // Resume a valid student session after a page refresh.
