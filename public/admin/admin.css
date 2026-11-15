@@ -30,3 +30,14 @@
 #saveEssayGrades:disabled{opacity:.5;cursor:not-allowed}
 
 .honor-editor .caption{line-height:1.8}
+
+.community-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+.community-tabs button{padding:9px 16px}
+.community-tabs .community-active{border-color:var(--accent);color:var(--accent);background:rgba(84,196,194,.13)}
+.community-items{display:grid;gap:12px;margin-top:16px}
+.community-card{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:16px}
+.community-card-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.community-card-head strong{font-size:14px;color:var(--text)}
+.community-card p{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.9;font-size:13px;color:var(--text);margin:12px 0}
+.community-meta{font-size:11px;color:var(--muted);line-height:1.9;margin-bottom:12px}
+.community-card .actions{flex-wrap:wrap}
