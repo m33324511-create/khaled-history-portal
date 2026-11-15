@@ -290,10 +290,31 @@
      if(!logs.length)rows.innerHTML='<tr><td colspan="5">لا توجد عمليات مطابقة.</td></tr>';
    }catch(e){notice.textContent=e.message;}
  }
+
+ async function renderAccessLogs(){
+   currentTab="access";const panel=$("#panel");
+   panel.innerHTML='<div class="section-head"><div><h2>تسجيلات الدخول وآخر ظهور</h2><p>متابعة محاولات دخول الطلاب والمسؤولين، وآخر نشاط مسجل لكل حساب.</p></div><button id="refreshAccess" class="ghost">تحديث</button></div><div class="student-tools"><input id="accessSearch" placeholder="ابحث بالاسم أو اسم المستخدم أو الرقم التعريفي أو IP"><button id="searchAccess" class="ghost">بحث</button></div><h3>آخر ظهور للحسابات</h3><div id="activityNotice" class="notice">جارٍ تحميل آخر الظهور…</div><div class="table-wrap"><table class="students-table"><thead><tr><th>الحساب</th><th>النوع</th><th>آخر ظهور</th></tr></thead><tbody id="activityRows"></tbody></table></div><h3 style="margin-top:28px">سجل محاولات تسجيل الدخول</h3><div id="accessNotice" class="notice">جارٍ تحميل محاولات الدخول…</div><div class="table-wrap"><table class="students-table"><thead><tr><th>التاريخ والوقت</th><th>الحساب</th><th>النوع</th><th>النتيجة</th><th>عنوان IP</th></tr></thead><tbody id="accessRows"></tbody></table></div>';
+   $("#refreshAccess").onclick=()=>loadAccessLogs($("#accessSearch").value.trim());
+   $("#searchAccess").onclick=()=>loadAccessLogs($("#accessSearch").value.trim());
+   $("#accessSearch").addEventListener("keydown",e=>{if(e.key==="Enter")loadAccessLogs(e.target.value.trim());});
+   await loadAccessLogs();
+ }
+ async function loadAccessLogs(q=""){
+   const an=$("#activityNotice"),ar=$("#activityRows"),ln=$("#accessNotice"),lr=$("#accessRows");if(!an||!ar||!ln||!lr)return;
+   try{
+     const data=await api("/api/admin/access-logs?q="+encodeURIComponent(q));
+     const activity=data.activity||[],attempts=data.attempts||[];
+     an.textContent="عدد الحسابات: "+activity.length;
+     ar.innerHTML=activity.map(x=>'<tr><td>'+esc(x.account_name||"—")+'</td><td>'+esc(x.account_type==="student"?"طالب":"مسؤول")+'</td><td>'+esc(x.last_seen_at||"لم يظهر بعد")+'</td></tr>').join("")||'<tr><td colspan="3">لا توجد بيانات ظهور حتى الآن.</td></tr>';
+     ln.textContent="عدد محاولات الدخول المعروضة: "+attempts.length;
+     lr.innerHTML=attempts.map(x=>'<tr><td>'+esc(x.created_at||"—")+'</td><td>'+esc(x.account_name||x.identity||"—")+'</td><td>'+esc(x.account_type==="student"?"طالب":x.account_type==="admin"?"مسؤول":"غير محدد")+'</td><td><span class="state '+(x.success?"on":"off")+'">'+(x.success?"ناجحة":"فاشلة")+'</span></td><td><code>'+esc(x.ip_address||"—")+'</code></td></tr>').join("")||'<tr><td colspan="5">لا توجد محاولات مطابقة.</td></tr>';
+   }catch(e){an.textContent=e.message;ln.textContent=e.message;}
+ }
+
  async function init(){try{const state=await api("/api/admin/me");if(state.authenticated)await showDashboard(state.admin);else showAuth(state.setupRequired);}catch(e){showAuth(false);msg.textContent=e.message;}}
  login.addEventListener("submit",async e=>{e.preventDefault();msg.textContent="جارٍ التحقق…";const f=new FormData(login);try{const r=await api("/api/admin/login",{method:"POST",body:JSON.stringify(Object.fromEntries(f))});currentTab="overview";await showDashboard(r.admin);}catch(err){msg.textContent=err.message;}});
  setup.addEventListener("submit",async e=>{e.preventDefault();msg.textContent="جارٍ إنشاء الحساب…";const f=new FormData(setup);try{const r=await api("/api/admin/setup",{method:"POST",body:JSON.stringify(Object.fromEntries(f))});await showDashboard(r.admin);}catch(err){msg.textContent=err.message;}});
  $("#logoutBtn").addEventListener("click",async()=>{try{await api("/api/admin/logout",{method:"POST",body:"{}"});}finally{location.reload();}});
- document.querySelectorAll("[data-tab]").forEach(btn=>btn.addEventListener("click",async()=>{document.querySelectorAll("[data-tab]").forEach(x=>x.classList.remove("active"));btn.classList.add("active");const tab=btn.dataset.tab;if(tab==="students")await renderStudents();else if(tab==="groups")await renderGroups();else if(tab==="honors")await renderHonors();else if(tab==="exams")await renderExams();else if(tab==="results")await renderResults();else if(tab==="admins")await renderAdmins();else if(tab==="logs")await renderLogs();else if(tab==="overview"){currentTab="overview";$("#panel").innerHTML="<h2>نظرة عامة</h2><div id='stats' class='stats'></div>";await refreshStats();}}));
+ document.querySelectorAll("[data-tab]").forEach(btn=>btn.addEventListener("click",async()=>{document.querySelectorAll("[data-tab]").forEach(x=>x.classList.remove("active"));btn.classList.add("active");const tab=btn.dataset.tab;if(tab==="students")await renderStudents();else if(tab==="groups")await renderGroups();else if(tab==="honors")await renderHonors();else if(tab==="exams")await renderExams();else if(tab==="results")await renderResults();else if(tab==="admins")await renderAdmins();else if(tab==="logs")await renderLogs();else if(tab==="access")await renderAccessLogs();else if(tab==="overview"){currentTab="overview";$("#panel").innerHTML="<h2>نظرة عامة</h2><div id='stats' class='stats'></div>";await refreshStats();}}));
  init();
 })();
