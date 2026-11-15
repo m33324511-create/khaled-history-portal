@@ -56,6 +56,7 @@ export async function onRequestPut({ request, env }) {
   }
   const name = clean(body.name), description = clean(body.description), grade = clean(body.grade);
   if (name.length < 2 || name.length > 80) return json({ message: "اسم المجموعة يجب أن يكون بين حرفين و80 حرفًا." }, 400);
+  if (!["الصف الأول الثانوي","الصف الثاني الثانوي","الصف الثالث الثانوي"].includes(grade)) return json({message:"حدد الصف الدراسي للمجموعة."},400);
   if (description.length > 500) return json({ message: "وصف المجموعة طويل جدًا (الحد 500 حرف)." }, 400);
   const duplicate = await env.DB.prepare("SELECT id FROM study_groups WHERE name=? COLLATE NOCASE AND id<>? LIMIT 1").bind(name, id).first();
   if (duplicate) return json({ message: "اسم المجموعة مستخدم بالفعل." }, 409);
