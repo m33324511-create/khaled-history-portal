@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs>
+ <linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff0a6"/><stop offset=".38" stop-color="#e9b844"/><stop offset=".72" stop-color="#a96a12"/><stop offset="1" stop-color="#ffe58a"/></linearGradient>
+ <linearGradient id="b" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#173c63"/><stop offset="1" stop-color="#07182b"/></linearGradient>
+ <filter id="s" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="7" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<!-- Transparent canvas; no enclosing square, frame, or border -->
+<path d="M256 28 292 87 350 61 353 126 415 137 381 190 429 235 371 267 385 333 319 330 290 391 256 346 222 391 193 330 127 333 141 267 83 235 131 190 97 137 159 126 162 61 220 87Z" fill="url(#b)" opacity=".95"/>
+<path d="M256 28 292 87 350 61 353 126 415 137 381 190 429 235 371 267 385 333 319 330 290 391 256 346 222 391 193 330 127 333 141 267 83 235 131 190 97 137 159 126 162 61 220 87Z" fill="none" stroke="url(#g)" stroke-width="10" stroke-linejoin="round"/>
+<path d="M174 125 202 78 230 123 256 55 282 123 310 78 338 125" fill="none" stroke="url(#g)" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M160 270 210 176 256 255 302 176 352 270" fill="none" stroke="url(#g)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="256" y="329" text-anchor="middle" font-family="Georgia,serif" font-size="190" font-weight="bold" fill="url(#g)" stroke="#5c3709" stroke-width="3" paint-order="stroke">K</text>
+<path d="M165 371 Q256 410 347 371" fill="none" stroke="url(#g)" stroke-width="9" stroke-linecap="round"/>
+<circle cx="256" cy="400" r="13" fill="url(#g)"/>
+</svg>
