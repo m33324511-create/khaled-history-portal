@@ -88,17 +88,50 @@
     if(!response.ok) throw new Error(data.message || 'حدث خطأ أثناء الاتصال بالخادم.');
     return data;
   }
+  let studentAuthenticated = false;
+  const publicMain = document.querySelector('main');
+  const publicFooter = document.querySelector('.footer');
+  const publicNav = document.querySelector('.desktop-nav');
+  const studentNavLink = document.createElement('a');
+  studentNavLink.href = '#studentDashboard';
+  studentNavLink.textContent = 'مساحة الطالب';
+  studentNavLink.hidden = true;
+  studentNavLink.addEventListener('click', event => {
+    event.preventDefault();
+    showStudentDashboard();
+    if (window.innerWidth <= 1000) { publicNav.removeAttribute('style'); menuToggle.setAttribute('aria-expanded', 'false'); }
+  });
+  publicNav.appendChild(studentNavLink);
+
   function showStudentDashboard() {
-    // Keep the public site visible while the authenticated student area is available below it.
-    document.querySelector('main').hidden = false;
-    document.querySelector('.footer').hidden = false;
+    publicMain.hidden = true;
+    publicFooter.hidden = true;
     dashboard.hidden = false;
     closeLogin();
     dashboard.scrollIntoView({behavior:'smooth',block:'start'});
   }
+  function showPublicSite(target) {
+    dashboard.hidden = true;
+    publicMain.hidden = false;
+    publicFooter.hidden = false;
+    if (target) {
+      const section = document.querySelector(target);
+      if (section) section.scrollIntoView({behavior:'smooth',block:'start'});
+    } else window.scrollTo({top:0,behavior:'smooth'});
+  }
+  document.querySelectorAll('.desktop-nav a[href^="#"]:not([href="#studentDashboard"])').forEach(link => {
+    link.addEventListener('click', event => {
+      if (!studentAuthenticated) return;
+      event.preventDefault();
+      showPublicSite(link.getAttribute('href'));
+      if (window.innerWidth <= 1000) { publicNav.removeAttribute('style'); menuToggle.setAttribute('aria-expanded', 'false'); }
+    });
+  });
   async function loadStudentHome() {
     clearInterval(examTimer); activeAttempt=null;
     const data=await studentApi('/api/student/exams');
+    studentAuthenticated = true;
+    studentNavLink.hidden = false;
     showStudentDashboard();
     dashboard.innerHTML = '<div class="student-wrap"><div class="student-top"><div><span class="student-kicker">STUDENT SPACE</span><h1>مرحبًا، '+htmlSafe(data.student.full_name)+'</h1><p>الرقم التعريفي: '+htmlSafe(data.student.student_code)+'</p></div><button id="studentLogout" class="student-logout">تسجيل الخروج</button></div><div class="student-heading"><div><span class="student-kicker">YOUR EXAMS</span><h2>الامتحانات المتاحة</h2></div><button id="refreshStudentExams" class="student-secondary">تحديث</button></div><div id="studentExamMessage" class="student-message"></div><div id="studentExamGrid" class="student-exam-grid"></div><div class="student-heading history-heading"><div><span class="student-kicker">YOUR ACTIVITY</span><h2>سجل المحاولات والنتائج</h2></div></div><div id="studentHistory" class="student-history"></div></div>';
     document.getElementById('studentLogout').onclick=studentLogout;
@@ -194,7 +227,7 @@
     clearInterval(examTimer);clearTimeout(saveTimer);
     try{if(activeAttempt?.status==='in_progress')await saveStudentAnswers(false);}catch{}
     try{await studentApi('/api/student/logout',{method:'POST',body:'{}'});}catch{}
-    dashboard.hidden=true;dashboard.innerHTML='';
+    studentAuthenticated=false;studentNavLink.hidden=true;dashboard.hidden=true;dashboard.innerHTML='';showPublicSite();
   }
 
 
