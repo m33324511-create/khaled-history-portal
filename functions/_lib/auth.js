@@ -76,5 +76,8 @@ export async function requireAdmin(request, env) {
   if (!session || session.kind!=="admin" || !session.sub) return null;
   const admin=await env.DB.prepare("SELECT id, full_name, username, role, permissions_json, is_active FROM admins WHERE id=? LIMIT 1").bind(session.sub).first();
   if (!admin || !admin.is_active) return null;
+  try {
+    await env.DB.prepare("INSERT INTO account_activity (account_type,account_id,last_seen_at) VALUES ('admin',?,CURRENT_TIMESTAMP) ON CONFLICT(account_type,account_id) DO UPDATE SET last_seen_at=CASE WHEN last_seen_at < datetime('now','-1 minute') THEN CURRENT_TIMESTAMP ELSE last_seen_at END").bind(admin.id).run();
+  } catch {}
   return admin;
 }
