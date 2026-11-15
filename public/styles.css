@@ -178,13 +178,21 @@
 .ahmose-still{
   display:block;
   width:100%;
+  max-width:500px;
   height:auto;
-  max-height:460px;
+  max-height:none;
   object-fit:contain;
-  border-radius:16px;
-  box-shadow:0 18px 44px rgba(0,0,0,.18);
+  object-position:center;
+  border-radius:18px;
+  outline:1px solid rgba(210,166,99,.22);
+  box-shadow:0 22px 52px rgba(0,0,0,.24),0 2px 10px rgba(0,0,0,.10);
+  filter:contrast(1.045) saturate(1.035);
+}
+@media(min-width:1000px){
+  .ahmose-art{padding:18px}
+  .ahmose-still{max-width:500px}
 }
 @media(max-width:700px){
   .ahmose-art{min-height:0;padding:0}
-  .ahmose-still{width:100%;max-height:none}
+  .ahmose-still{width:100%;max-width:500px;border-radius:14px}
 }
