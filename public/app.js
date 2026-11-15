@@ -255,6 +255,14 @@
     loadCommunity('forum');clearInterval(communityPoll);communityPoll=setInterval(()=>loadCommunity(document.getElementById('communityChat').hidden?'forum':'chat'),6000);
   }
   async function loadCommunity(mode){
+    // Do not replace the forum DOM while a student is composing a reply.
+    // Replacing the focused input every six seconds closes the mobile keyboard
+    // and interrupts the student's typing.
+    if(mode==='forum'){
+      const active=document.activeElement;
+      const postsBox=document.getElementById('communityPosts');
+      if(postsBox && active && postsBox.contains(active) && active.matches('input, textarea, [contenteditable="true"]')) return;
+    }
     try{const d=await communityApi(mode,{},'GET');
       if(mode==='chat'){const box=document.getElementById('communityMessages');if(!box)return;box.innerHTML=(d.messages||[]).map(m=>'<div class="community-message '+(m.student_id===d.student_id?'mine':'')+'"><b>'+htmlSafe(m.full_name)+'</b><p>'+htmlSafe(m.body)+'</p><small>'+htmlSafe(m.created_at)+'</small></div>').join('')||'<div class="community-empty">لا توجد رسائل بعد. ابدأ الحديث!</div>';box.scrollTop=box.scrollHeight;}
       else{const box=document.getElementById('communityPosts');if(!box)return;box.innerHTML=(d.posts||[]).map(p=>'<article class="community-post"><div class="community-meta"><b>'+htmlSafe(p.full_name)+'</b><span>'+htmlSafe(p.created_at)+'</span></div><h3>'+htmlSafe(p.title)+'</h3><p>'+htmlSafe(p.body)+'</p><div class="community-replies">'+(p.replies||[]).map(r=>'<div class="community-reply"><b>'+htmlSafe(r.full_name)+'</b><br>'+htmlSafe(r.body)+'</div>').join('')+'</div><form class="community-reply-form" data-post="'+htmlSafe(p.id)+'"><input name="body" maxlength="2000" required placeholder="اكتب ردك…"><button>رد</button></form></article>').join('')||'<div class="community-empty">لا توجد أسئلة حتى الآن. كن أول من يبدأ النقاش.</div>';box.querySelectorAll('.community-reply-form').forEach(f=>f.onsubmit=async e=>{e.preventDefault();try{await communityApi('reply',{post_id:f.dataset.post,body:new FormData(f).get('body')});await loadCommunity('forum');}catch(x){alert(x.message);}});}
