@@ -140,3 +140,24 @@
 .honors-empty{grid-column:1/-1;padding:34px 18px;text-align:center;border:1px dashed var(--line);border-radius:14px;color:var(--muted);font-size:13px}
 @media(max-width:850px){.honors-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.honors-grid{grid-template-columns:1fr}.honor-photo{height:260px}.honors-filters{gap:7px}.honor-filter{padding:8px 11px;font-size:10px}}
+
+
+/* King Ahmose chariot illustration */
+.ahmose-art{min-height:360px;overflow:hidden;border-radius:22px;isolation:isolate;background:radial-gradient(ellipse at 55% 52%,color-mix(in srgb,var(--warm) 16%,transparent),transparent 62%); }
+.ahmose-halo{position:absolute;width:290px;height:290px;border:1px solid color-mix(in srgb,var(--warm) 42%,transparent);border-radius:50%;box-shadow:0 0 70px color-mix(in srgb,var(--warm) 16%,transparent),inset 0 0 55px color-mix(in srgb,var(--warm) 10%,transparent);animation:ahmoseHalo 8s ease-in-out infinite}
+.ahmose-scene{position:relative;z-index:1;width:min(100%,720px);height:auto;overflow:visible;filter:drop-shadow(0 16px 18px rgba(0,0,0,.16));}
+.ahmose-horse{transform-origin:250px 235px;animation:ahmoseHorse 2.4s ease-in-out infinite}
+.ahmose-chariot{transform-origin:392px 291px;animation:ahmoseRide 2.4s ease-in-out infinite}
+.ahmose-wheel{transform-box:fill-box;transform-origin:center;animation:ahmoseWheel 5s linear infinite}
+.ahmose-king{transform-origin:420px 220px;animation:ahmoseKing 2.4s ease-in-out infinite}
+.ahmose-dust{animation:ahmoseDust 5s ease-in-out infinite}
+:root[data-theme="light"] .ahmose-scene{filter:drop-shadow(0 12px 16px rgba(75,49,24,.18))}
+:root[data-theme="dark"] .ahmose-scene{filter:drop-shadow(0 14px 22px rgba(0,0,0,.38))}
+@keyframes ahmoseHalo{0%,100%{transform:scale(.96);opacity:.55}50%{transform:scale(1.04);opacity:.9}}
+@keyframes ahmoseHorse{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-4px) rotate(-.7deg)}}
+@keyframes ahmoseRide{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes ahmoseWheel{to{transform:rotate(360deg)}}
+@keyframes ahmoseKing{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+@keyframes ahmoseDust{0%,100%{opacity:.15;transform:translateX(0)}50%{opacity:.42;transform:translateX(-18px)}}
+@media(max-width:700px){.ahmose-art{min-height:270px}.ahmose-scene{width:115%;max-width:none;margin-inline:-7.5%}.ahmose-halo{width:220px;height:220px}}
+@media(prefers-reduced-motion:reduce){.ahmose-halo,.ahmose-horse,.ahmose-chariot,.ahmose-wheel,.ahmose-king,.ahmose-dust{animation:none!important}}
