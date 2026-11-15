@@ -24,6 +24,14 @@
    if(currentTab==="students") await renderStudents(); else if(currentTab==="groups") await renderGroups(); else if(currentTab==="honors") await renderHonors(); else if(currentTab==="exams") await renderExams(); else if(currentTab==="results") await renderResults();
  }
  function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+ function formatEgyptDateTime(value){
+   if(!value)return "—";
+   const raw=String(value).trim();
+   const hasZone=/[zZ]|[+-]\\d{2}:?\\d{2}$/.test(raw);
+   const date=new Date(hasZone?raw:raw.replace(" ","T")+"Z");
+   if(Number.isNaN(date.getTime()))return raw;
+   return new Intl.DateTimeFormat("ar-EG",{timeZone:"Africa/Cairo",year:"numeric",month:"2-digit",day:"2-digit",hour:"numeric",minute:"2-digit",hour12:true}).format(date);
+ }
  async function renderStudents(q=""){
    currentTab="students";const panel=$("#panel");
    panel.innerHTML='<div class="section-head"><div><h2>إدارة الطلاب</h2><p>إضافة الطلاب وتعديل بياناتهم وربطهم بمجموعات الدروس.</p></div><button id="addStudentBtn" class="primary">＋ إضافة طالب</button></div><div class="student-tools"><input id="studentSearch" placeholder="ابحث بالاسم أو الهاتف أو الرقم التعريفي" value="'+esc(q)+'"><button id="searchStudents" class="ghost">بحث</button><button id="showAllStudents" class="ghost">عرض الكل</button></div><div id="studentFormWrap"></div><div id="studentsNotice" class="notice">جارٍ تحميل بيانات الطلاب…</div><div class="table-wrap"><table class="students-table"><thead><tr><th>الطالب</th><th>الهاتف</th><th>الرقم التعريفي</th><th>المجموعة</th><th>الحالة</th><th>الإجراءات</th></tr></thead><tbody id="studentsRows"></tbody></table></div>';
@@ -315,9 +323,9 @@
      const data=await api("/api/admin/access-logs?q="+encodeURIComponent(q));
      const activity=data.activity||[],attempts=data.attempts||[];
      an.textContent="عدد الحسابات: "+activity.length;
-     ar.innerHTML=activity.map(x=>'<tr><td>'+esc(x.account_name||"—")+'</td><td>'+esc(x.account_type==="student"?"طالب":"مسؤول")+'</td><td>'+esc(x.last_seen_at||"لم يظهر بعد")+'</td></tr>').join("")||'<tr><td colspan="3">لا توجد بيانات ظهور حتى الآن.</td></tr>';
+     ar.innerHTML=activity.map(x=>'<tr><td>'+esc(x.account_name||"—")+'</td><td>'+esc(x.account_type==="student"?"طالب":"مسؤول")+'</td><td>'+esc(x.last_seen_at?formatEgyptDateTime(x.last_seen_at):"لم يظهر بعد")+'</td></tr>').join("")||'<tr><td colspan="3">لا توجد بيانات ظهور حتى الآن.</td></tr>';
      ln.textContent="عدد محاولات الدخول المعروضة: "+attempts.length;
-     lr.innerHTML=attempts.map(x=>'<tr><td>'+esc(x.created_at||"—")+'</td><td>'+esc(x.account_name||x.identity||"—")+'</td><td>'+esc(x.account_type==="student"?"طالب":x.account_type==="admin"?"مسؤول":"غير محدد")+'</td><td><span class="state '+(x.success?"on":"off")+'">'+(x.success?"ناجحة":"فاشلة")+'</span></td><td><code>'+esc(x.ip_address||"—")+'</code></td></tr>').join("")||'<tr><td colspan="5">لا توجد محاولات مطابقة.</td></tr>';
+     lr.innerHTML=attempts.map(x=>'<tr><td>'+esc(formatEgyptDateTime(x.created_at))+'</td><td>'+esc(x.account_name||x.identity||"—")+'</td><td>'+esc(x.account_type==="student"?"طالب":x.account_type==="admin"?"مسؤول":"غير محدد")+'</td><td><span class="state '+(x.success?"on":"off")+'">'+(x.success?"ناجحة":"فاشلة")+'</span></td><td><code>'+esc(x.ip_address||"—")+'</code></td></tr>').join("")||'<tr><td colspan="5">لا توجد محاولات مطابقة.</td></tr>';
    }catch(e){an.textContent=e.message;ln.textContent=e.message;}
  }
 
