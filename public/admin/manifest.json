@@ -1,0 +1,20 @@
+{
+  "name": "لوحة إدارة بوابة التاريخ",
+  "short_name": "إدارة التاريخ",
+  "description": "لوحة الإدارة الخاصة ببوابة الأستاذ خالد إبراهيم",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "/admin/",
+  "scope": "/admin/",
+  "display": "standalone",
+  "background_color": "#101d2c",
+  "theme_color": "#17152f",
+  "icons": [
+    {
+      "src": "/admin/admin-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
