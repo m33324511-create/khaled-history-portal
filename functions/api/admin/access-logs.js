@@ -11,3 +11,17 @@ export async function onRequestGet({request,env}){
   ]);
   return json({activity:activity.results||[],attempts:attempts.results||[]});
 }
+  
+export async function onRequestDelete({request,env}){
+  const admin=await requireAdmin(request,env);
+  if(!admin)return json({message:"يلزم تسجيل دخول الإدارة."},401);
+  let body={};
+  try{body=await request.json();}catch{}
+  if(body.confirm!=="DELETE_ACCESS_LOGS")return json({message:"تأكيد الحذف غير صالح."},400);
+  const results=await env.DB.batch([
+    env.DB.prepare("DELETE FROM auth_attempts"),
+    env.DB.prepare("DELETE FROM account_activity")
+  ]);
+  const deletedCount=results.reduce((sum,result)=>sum+Number(result.meta?.changes||0),0);
+  return json({success:true,deleted_count:deletedCount,message:"تم حذف سجلات الدخول وآخر الظهور."});
+}
