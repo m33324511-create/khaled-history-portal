@@ -78,56 +78,80 @@
 
       <section class="journey section-pad" id="journey"><div class="journey-art ahmose-art" role="img" aria-label="رسم تاريخي للملك أحمس على عربة حربية">
   <div class="ahmose-halo"></div>
-  <svg class="ahmose-scene" viewBox="0 0 760 390" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-    <defs>
-      <linearGradient id="ahmoseGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe5a0"/><stop offset=".48" stop-color="#d99a45"/><stop offset="1" stop-color="#95602e"/></linearGradient>
-      <linearGradient id="ahmoseHorse" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#d8a66d"/><stop offset="1" stop-color="#805033"/></linearGradient>
-      <filter id="ahmoseGlow"><feGaussianBlur stdDeviation="8"/></filter>
-    </defs>
-    <ellipse cx="390" cy="342" rx="300" ry="16" fill="currentColor" opacity=".10"/>
-    <path class="ahmose-dust" d="M75 319q50-30 90 0t90 0m300 0q50-30 90 0t90 0" fill="none" stroke="#c88b48" stroke-width="3" opacity=".35"/>
-    <!-- horse -->
-    <g class="ahmose-horse">
-      <path d="M205 183q-34-35-17-73 12-25 42-22l35 28q34-5 63 18l36 45-18 48-56 9-27 72-19 0 5-78-40-4-17 82-20 0 2-92-35-33z" fill="url(#ahmoseHorse)" stroke="#70472f" stroke-width="5" stroke-linejoin="round"/>
-      <path d="M191 113q-25-29-11-51 8 23 31 24m20 6q-4-35 18-46-8 31 4 50" fill="none" stroke="#49372e" stroke-width="12" stroke-linecap="round"/>
-      <path d="M184 104q-30-7-43 12l20 18 37-7" fill="#bd8757" stroke="#70472f" stroke-width="5"/>
-      <circle cx="166" cy="119" r="4" fill="#1b1b1b"/>
-      <path d="M207 189q48 28 102 1m-85 34 25 8m-15 16 25 7" fill="none" stroke="#70472f" stroke-width="5" stroke-linecap="round"/>
-      <path d="M201 277l-5 62m46-62 1 62m57-65-4 65" stroke="#805033" stroke-width="13" stroke-linecap="round"/>
-      <path d="M190 339h26m20 0h26m36 0h22" stroke="#d8a66d" stroke-width="7" stroke-linecap="round"/>
-      <path d="M318 175q38-27 57-7" fill="none" stroke="#49372e" stroke-width="8" stroke-linecap="round"/>
-      <path d="M211 144q52 27 102 16" fill="none" stroke="#e6bd7b" stroke-width="5"/>
-      <path d="M224 142l18 45 18-44" fill="none" stroke="#d6a04f" stroke-width="5"/>
-    </g>
-    <!-- chariot -->
-    <g class="ahmose-chariot">
-      <path d="M284 221h205l-28 53H310z" fill="#9b6338" stroke="#e0ad62" stroke-width="7" stroke-linejoin="round"/>
-      <path d="M304 224l28 48m128-48-28 48" stroke="#f3cf87" stroke-width="5"/>
-      <circle class="ahmose-wheel" cx="392" cy="291" r="49" fill="#9b6338" stroke="url(#ahmoseGold)" stroke-width="9"/>
-      <circle cx="392" cy="291" r="9" fill="#f4d38c"/>
-      <path d="M392 244v94m-47-47h94m-80-33 66 66m0-66-66 66" stroke="#e9bd73" stroke-width="5"/>
-      <path d="M286 215l-49-27m246 29 46-18" stroke="#c38b4b" stroke-width="7" stroke-linecap="round"/>
-    </g>
-    <!-- King Ahmose: single royal figure -->
-    <g class="ahmose-king">
-      <path d="M353 111q8-35 47-35 40 0 47 36l-8 48h-78z" fill="#b47b43" stroke="#71462b" stroke-width="5"/>
-      <path d="M365 93q34-43 70-4l-8 30h-56z" fill="url(#ahmoseGold)" stroke="#80552f" stroke-width="5"/>
-      <path d="M378 118q18 10 37 0l-2 23q-17 14-33 0z" fill="#a96f3f"/>
-      <path d="M374 147q26 10 53-1l28 72-95 0z" fill="#d2a052" stroke="#80552f" stroke-width="5"/>
-      <path d="M386 154l12 53m22-54-8 54" stroke="#f5d58d" stroke-width="5"/>
-      <path d="M380 215l-22 31m72-31 22 25" stroke="#b47b43" stroke-width="13" stroke-linecap="round"/>
-      <path d="M360 245l-20 20m92-23 21 14" stroke="#a66c3c" stroke-width="12" stroke-linecap="round"/>
-      <path d="M358 261l-23 13m118-16 24 8" stroke="#f0c77c" stroke-width="8" stroke-linecap="round"/>
-      <path d="M355 272l-13 12m129-12 17 7" stroke="#f3d18b" stroke-width="6" stroke-linecap="round"/>
-      <path d="M397 74q-9-18-1-31 15 15 15 29m8-1q10-21 29-23-6 19-15 31" fill="#c58b4c" stroke="#84562e" stroke-width="4"/>
-      <path d="M453 190q25-20 38-2" fill="none" stroke="#d7a75e" stroke-width="8" stroke-linecap="round"/>
-      <path d="M478 185q17-28 26-47" fill="none" stroke="#d7a75e" stroke-width="6" stroke-linecap="round"/>
-      <!-- bow carried upright, not depicting a shot -->
-      <path d="M512 101q-37 52 0 104" fill="none" stroke="#d8a04f" stroke-width="7" stroke-linecap="round"/>
-      <path d="M512 101q-19 53 0 104" fill="none" stroke="#f5d58d" stroke-width="2"/>
-    </g>
-    <path d="M70 347h620" stroke="currentColor" opacity=".16" stroke-width="2"/>
-  </svg>
+  <svg class="ahmose-scene" viewBox="0 0 900 470" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <defs>
+    <linearGradient id="ahmoseGold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffe9ae"/><stop offset=".5" stop-color="#d49a45"/><stop offset="1" stop-color="#8d542c"/></linearGradient>
+    <linearGradient id="ahmoseBlue" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#54c4c2"/><stop offset="1" stop-color="#176078"/></linearGradient>
+    <linearGradient id="ahmoseHorse" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#e3b77f"/><stop offset="1" stop-color="#885532"/></linearGradient>
+    <linearGradient id="ahmoseWood" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#c98b48"/><stop offset="1" stop-color="#754327"/></linearGradient>
+    <filter id="ahmoseShadow" x="-30%" y="-30%" width="160%" height="170%"><feGaussianBlur stdDeviation="9"/></filter>
+  </defs>
+  <ellipse cx="450" cy="414" rx="360" ry="22" fill="currentColor" opacity=".12" filter="url(#ahmoseShadow)"/>
+  <path d="M60 408H840" stroke="currentColor" opacity=".15" stroke-width="2"/>
+  <g class="ahmose-dust" fill="none" stroke="#c58a48" stroke-width="4" stroke-linecap="round" opacity=".45"><path d="M72 376q36-24 72 0t72 0M105 394q28-16 56 0t56 0M680 375q34-22 68 0t68 0"/></g>
+
+  <!-- Horse: clear side profile, facing forward -->
+  <g class="ahmose-horse">
+    <path d="M170 225Q133 199 143 154Q151 117 190 112L225 130Q263 117 302 145Q334 166 348 205L333 251L292 266L274 338L255 340L250 271L211 268L198 342L179 342L181 254Z" fill="url(#ahmoseHorse)" stroke="#68452f" stroke-width="7" stroke-linejoin="round"/>
+    <path d="M177 143Q142 103 162 75Q174 105 203 112Q199 75 225 59Q218 94 239 124" fill="#49352c" stroke="#49352c" stroke-width="10" stroke-linecap="round"/>
+    <path d="M151 153Q115 142 99 165L119 191L163 185Z" fill="#c18a59" stroke="#68452f" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M111 166l-17-5 12 18" fill="#d7a66d" stroke="#68452f" stroke-width="4"/>
+    <circle cx="145" cy="158" r="5" fill="#1d1b18"/>
+    <path d="M166 205Q216 233 284 203" fill="none" stroke="#f1d09b" stroke-width="7" opacity=".8"/>
+    <path d="M190 253L178 355M250 267L258 355M302 254L322 350" stroke="#87552f" stroke-width="17" stroke-linecap="round"/>
+    <path d="M164 356h29m51 0h28m37-2h29" stroke="#d9ad77" stroke-width="9" stroke-linecap="round"/>
+    <path d="M304 158Q337 134 354 151" fill="none" stroke="#4a3529" stroke-width="11" stroke-linecap="round"/>
+    <path d="M202 132Q244 151 296 143" fill="none" stroke="#f0d09a" stroke-width="5"/>
+    <path d="M213 138l17 31 19-29" fill="none" stroke="#c38a43" stroke-width="6"/>
+    <path d="M182 186q-15 16-17 34" fill="none" stroke="#71472e" stroke-width="5"/>
+  </g>
+
+  <!-- Chariot and large, readable wheel -->
+  <g class="ahmose-chariot">
+    <path d="M315 238H610L577 306H344Z" fill="url(#ahmoseWood)" stroke="#e5b76d" stroke-width="8" stroke-linejoin="round"/>
+    <path d="M342 245l44 58m176-58-42 58" stroke="#f2d18d" stroke-width="6" opacity=".9"/>
+    <path d="M325 229L276 198M603 230l51-25" stroke="#b77b3f" stroke-width="10" stroke-linecap="round"/>
+    <circle class="ahmose-wheel" cx="474" cy="329" r="67" fill="#80502f" stroke="url(#ahmoseGold)" stroke-width="13"/>
+    <circle cx="474" cy="329" r="13" fill="#f5d38b" stroke="#80502f" stroke-width="4"/>
+    <path d="M474 267V391M412 329H536M430 285l88 88m0-88-88 88" stroke="#edc47e" stroke-width="8" stroke-linecap="round"/>
+    <path d="M356 305l-12 25h42" fill="none" stroke="#f0d095" stroke-width="6"/>
+  </g>
+
+  <!-- King Ahmose: unmistakable royal profile, striped nemes and ceremonial kilt -->
+  <g class="ahmose-king">
+    <!-- legs and kilt -->
+    <path d="M446 252l-28 75 23 8 40-58 21 59 23-8-18-83Z" fill="#b47a43" stroke="#71472e" stroke-width="7" stroke-linejoin="round"/>
+    <path d="M414 330l-8 18 44 5 16-18m43-3 8 18 40-6-10-19" fill="#e5bd7b" stroke="#80502f" stroke-width="5"/>
+    <path d="M438 211l91-4 25 75q-56 25-123-2Z" fill="#f0dfb9" stroke="#9c6b3d" stroke-width="7"/>
+    <path d="M447 220l-3 55m33-57-2 63m34-62 7 57" stroke="#c28a4d" stroke-width="5" opacity=".9"/>
+    <path d="M437 278q52 20 115 0l-8 24q-49 18-100-1Z" fill="url(#ahmoseGold)" stroke="#81542e" stroke-width="5"/>
+    <!-- torso and collar -->
+    <path d="M443 144Q480 127 522 146L549 221Q492 248 423 218Z" fill="#b97e48" stroke="#70482f" stroke-width="7" stroke-linejoin="round"/>
+    <path d="M441 157q45 35 91 0l16 24q-59 48-123 0Z" fill="url(#ahmoseBlue)" stroke="#f0cc7c" stroke-width="6"/>
+    <path d="M452 162l8 26m20-24 4 34m21-35-2 33m20-34-8 25" stroke="#f4d48c" stroke-width="5"/>
+    <path d="M470 203l-7 23m34-23 5 24" stroke="#f5d69a" stroke-width="5"/>
+    <!-- neck, head and unmistakable profile -->
+    <path d="M465 113h45v39q-17 17-38 0Z" fill="#a96e3e" stroke="#75492d" stroke-width="5"/>
+    <path d="M461 76Q488 52 518 75L526 113Q518 142 489 145Q464 134 455 111Z" fill="#bd8250" stroke="#71472e" stroke-width="6"/>
+    <path d="M514 91q17 7 23 20l-17 7-3 15-15 4" fill="none" stroke="#71472e" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M501 91l12 2" stroke="#30251e" stroke-width="5" stroke-linecap="round"/>
+    <path d="M503 126q-12 8-23 0" fill="none" stroke="#71472e" stroke-width="4" stroke-linecap="round"/>
+    <!-- blue-and-gold nemes headdress with uraeus -->
+    <path d="M453 93Q449 42 491 34Q540 31 550 83L541 145Q525 158 514 166L522 116Q510 99 490 103Q474 107 470 128L476 165Q450 150 439 132Z" fill="url(#ahmoseBlue)" stroke="#e7bb70" stroke-width="7" stroke-linejoin="round"/>
+    <path d="M461 61q33-21 72 0M454 81q38-19 88 1M455 103q31-14 77 2" fill="none" stroke="#f1cf83" stroke-width="7" stroke-linecap="round"/>
+    <path d="M490 36q-5-20 10-28 13 12 4 28l-7 14Z" fill="#d7a34f" stroke="#82572f" stroke-width="4"/>
+    <circle cx="499" cy="20" r="5" fill="#f4d58d"/>
+    <!-- arms: reins toward horse, ceremonial bow in the other hand -->
+    <path d="M443 166Q409 179 382 211L364 226" fill="none" stroke="#b97e48" stroke-width="17" stroke-linecap="round"/>
+    <path d="M365 226l-14-9" stroke="#f0ca82" stroke-width="12" stroke-linecap="round"/>
+    <path d="M535 165q36-5 52 21l17 23" fill="none" stroke="#b97e48" stroke-width="17" stroke-linecap="round"/>
+    <path d="M601 209l9 9" stroke="#e8bc74" stroke-width="12" stroke-linecap="round"/>
+    <path d="M615 88Q567 146 617 229" fill="none" stroke="#d8a04f" stroke-width="10" stroke-linecap="round"/>
+    <path d="M615 88Q590 158 617 229" fill="none" stroke="#f4d58e" stroke-width="3"/>
+    <path d="M617 88l-4-18m4 159 8 15" stroke="#f4d58e" stroke-width="5" stroke-linecap="round"/>
+  </g>
+  <path d="M90 424h720" stroke="currentColor" opacity=".12" stroke-width="2"/>
+</svg>
   <span class="journey-caption">KING AHMOSE · ANCIENT EGYPT</span>
 </div><div class="journey-copy"><div class="section-kicker">03 / START YOUR JOURNEY</div><h2>خطوتك الأولى<br>تبدأ <span>من هنا.</span></h2><p>حسابك يتم إنشاؤه مسبقًا بواسطة إدارة المنصة. استخدم بياناتك المسجلة للدخول ومتابعة رحلتك التعليمية.</p><button class="primary-btn" data-open-login>تسجيل دخول الطلاب <span>←</span></button></div></section>
     </main>
