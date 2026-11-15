@@ -89,8 +89,9 @@
     return data;
   }
   function showStudentDashboard() {
-    document.querySelector('main').hidden = true;
-    document.querySelector('.footer').hidden = true;
+    // Keep the public site visible while the authenticated student area is available below it.
+    document.querySelector('main').hidden = false;
+    document.querySelector('.footer').hidden = false;
     dashboard.hidden = false;
     closeLogin();
     dashboard.scrollIntoView({behavior:'smooth',block:'start'});
@@ -193,7 +194,7 @@
     clearInterval(examTimer);clearTimeout(saveTimer);
     try{if(activeAttempt?.status==='in_progress')await saveStudentAnswers(false);}catch{}
     try{await studentApi('/api/student/logout',{method:'POST',body:'{}'});}catch{}
-    dashboard.hidden=true;document.querySelector('main').hidden=false;document.querySelector('.footer').hidden=false;dashboard.innerHTML='';
+    dashboard.hidden=true;dashboard.innerHTML='';
   }
 
 
