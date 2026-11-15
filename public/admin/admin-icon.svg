@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs>
+ <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#090d2c"/><stop offset=".55" stop-color="#30205d"/><stop offset="1" stop-color="#071b42"/></linearGradient>
+ <linearGradient id="gold" x2="0" y2="1"><stop stop-color="#fff1a5"/><stop offset=".45" stop-color="#f5b93e"/><stop offset="1" stop-color="#a65b13"/></linearGradient>
+ <linearGradient id="blue" x2="0" y2="1"><stop stop-color="#38c9ff"/><stop offset="1" stop-color="#1746b9"/></linearGradient>
+ <filter id="glow"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<rect x="20" y="20" width="472" height="472" rx="112" fill="url(#bg)" stroke="url(#gold)" stroke-width="12"/>
+<circle cx="256" cy="226" r="174" fill="#101b49" stroke="#d99b31" stroke-width="7"/>
+<path d="M93 190 126 86 183 120 256 54 329 120 386 86 419 190 374 175 352 239 160 239 138 175Z" fill="url(#gold)" stroke="#fff0a0" stroke-width="5"/>
+<path d="M170 135 Q256 83 342 135 L326 269 Q256 325 186 269Z" fill="#e5ad42" stroke="#fff0a0" stroke-width="5"/>
+<path d="M190 151 Q256 120 322 151 L308 254 Q256 289 204 254Z" fill="#123d8b"/>
+<path d="M190 166 214 174 206 250 184 230Z M322 166 298 174 306 250 328 230Z" fill="#e5ad42"/>
+<ellipse cx="256" cy="204" rx="42" ry="52" fill="url(#gold)"/>
+<path d="M222 197 Q256 174 290 197 M236 213 Q256 225 276 213 M239 236 Q256 246 273 236" fill="none" stroke="#54320d" stroke-width="5" stroke-linecap="round"/>
+<path d="M256 155 256 128 273 145 256 162" fill="#27bfff" stroke="#ffe28a" stroke-width="4"/>
+<path d="M139 298 Q256 250 373 298 L392 368 120 368Z" fill="#0a1b48" stroke="url(#gold)" stroke-width="8"/>
+<rect x="165" y="293" width="182" height="100" rx="14" fill="#101e52" stroke="url(#blue)" stroke-width="7"/>
+<path d="M187 365V340h22v25m15 0v-42h22v42m15 0v-57h22v57m15 0v-72h22v72" fill="none" stroke="#45cfff" stroke-width="10" stroke-linejoin="round"/>
+<path d="M184 322 222 310 252 319 309 286" fill="none" stroke="#ffe08a" stroke-width="6" stroke-linecap="round"/>
+<path d="M309 286h-22m22 0v22" fill="none" stroke="#ffe08a" stroke-width="6"/>
+<path d="M103 350 132 330 153 355 132 380Z M409 350 380 330 359 355 380 380Z" fill="url(#gold)" stroke="#fff0a0" stroke-width="4"/>
+<path d="M256 390 278 411 256 432 234 411Z" fill="url(#gold)"/>
+<text x="256" y="466" font-family="Arial,sans-serif" font-size="29" font-weight="700" text-anchor="middle" fill="#ffe08a">ADMIN</text>
+</svg>
