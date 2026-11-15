@@ -15,5 +15,5 @@ export async function onRequestGet({request,env}){
   });
   const history=await env.DB.prepare("SELECT a.id,a.attempt_number,a.started_at,a.submitted_at,a.status,a.score,e.title AS exam_title,e.results_visible FROM attempts a JOIN exams e ON e.id=a.exam_id WHERE a.student_id=? ORDER BY COALESCE(a.submitted_at,a.started_at) DESC LIMIT 50").bind(student.id).all();
   const attempts=(history.results||[]).map(a=>({...a,score:(Number(a.results_visible)===1&&a.status==="graded"&&a.score!==null)?Number(a.score):null}));
-  return json({student:{full_name:student.full_name,student_code:student.student_code,group_id:student.group_id},exams,attempts});
+  return json({student:{full_name:student.full_name,student_code:student.student_code,group_id:student.group_id,grade:student.grade},exams,attempts});
 }
