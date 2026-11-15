@@ -21,7 +21,7 @@
  async function showDashboard(admin) {
    authView.classList.add("hidden");dashboard.classList.remove("hidden");$("#adminName").textContent=admin.full_name;
    try{await refreshStats();}catch(e){$("#stats").textContent=e.message;}
-   if(currentTab==="students") await renderStudents(); else if(currentTab==="groups") await renderGroups(); else if(currentTab==="honors") await renderHonors(); else if(currentTab==="exams") await renderExams(); else if(currentTab==="results") await renderResults();
+   if(currentTab==="students") await renderStudents(); else if(currentTab==="groups") await renderGroups(); else if(currentTab==="honors") await renderHonors(); else if(currentTab==="exams") await renderExams(); else if(currentTab==="results") await renderResults(); else if(currentTab==="community") await renderCommunity();
  }
  function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
  function formatEgyptDateTime(value){
@@ -299,6 +299,43 @@
    }catch(e){notice.textContent=e.message;}
  }
 
+
+ async function renderCommunity(mode="posts",q=""){
+   currentTab="community";
+   const panel=$("#panel");
+   const labels={posts:"الموضوعات",replies:"الردود",chat:"المحادثات",reports:"البلاغات"};
+   panel.innerHTML='<div class="section-head"><div><h2>التحكم الكامل في المنتدى</h2><p>مراجعة محتوى الطلاب وإخفاؤه أو إعادته أو حذفه، ومتابعة البلاغات عبر جميع الصفوف.</p></div><button id="refreshCommunity" class="ghost">تحديث البيانات</button></div><div class="community-tabs">'+Object.entries(labels).map(([k,v])=>'<button class="mini '+(mode===k?'community-active':'')+'" data-community-mode="'+k+'">'+v+'</button>').join("")+'</div><div class="student-tools"><input id="communitySearch" placeholder="ابحث في المحتوى أو اسم الطالب أو الصف" value="'+esc(q)+'"><button id="searchCommunity" class="ghost">بحث</button></div><div id="communityNotice" class="notice">جارٍ تحميل بيانات المنتدى…</div><div id="communityItems" class="community-items"></div>';
+   panel.querySelectorAll("[data-community-mode]").forEach(b=>b.onclick=()=>renderCommunity(b.dataset.communityMode,$("#communitySearch")?.value||""));
+   $("#refreshCommunity").onclick=()=>loadCommunity(mode,$("#communitySearch").value.trim());
+   $("#searchCommunity").onclick=()=>loadCommunity(mode,$("#communitySearch").value.trim());
+   $("#communitySearch").addEventListener("keydown",e=>{if(e.key==="Enter")loadCommunity(mode,e.target.value.trim());});
+   await loadCommunity(mode,q);
+ }
+ async function loadCommunity(mode="posts",q=""){
+   const notice=$("#communityNotice"),items=$("#communityItems");if(!notice||!items)return;
+   notice.textContent="جارٍ تحميل البيانات…";
+   try{
+     const data=await api("/api/admin/community?q="+encodeURIComponent(q));
+     const rows=data[mode]||[];
+     notice.textContent="عدد "+({posts:"الموضوعات",replies:"الردود",chat:"الرسائل",reports:"البلاغات"}[mode]||"العناصر")+" المعروضة: "+rows.length;
+     const actionButtons=(type,x)=>type==="report"?'<button class="mini danger" data-community-action="delete" data-type="report" data-id="'+esc(x.id)+'">حذف البلاغ</button>':'<button class="mini '+(x.is_hidden?"activate":"danger")+'" data-community-action="'+(x.is_hidden?"restore":"hide")+'" data-type="'+type+'" data-id="'+esc(x.id)+'">'+(x.is_hidden?"إظهار للطلاب":"إخفاء")+'</button><button class="mini danger" data-community-action="delete" data-type="'+type+'" data-id="'+esc(x.id)+'">حذف نهائي</button>';
+     const card=(x,type,body,title="")=>'<article class="community-card"><div class="community-card-head"><strong>'+esc(title||x.title||({reply:"رد على: "+(x.post_title||"موضوع محذوف"),chat:"رسالة محادثة",report:"بلاغ على "+(x.target_type||"محتوى"),post:"موضوع منتدى"}[type]||"محتوى"))+'</strong><span class="state '+(x.is_hidden?"off":"on")+'">'+(type==="report"?"بلاغ":x.is_hidden?"مخفي":"ظاهر")+'</span></div><p>'+esc(body||"")+'</p><div class="community-meta">الطالب: '+esc(x.full_name||"حساب غير متاح")+' · الصف: '+esc(x.grade||"—")+' · '+esc(formatEgyptDateTime(x.created_at))+(x.reply_count!==undefined?' · الردود: '+Number(x.reply_count):"")+'</div><div class="actions">'+actionButtons(type,x)+'</div></article>';
+     if(mode==="posts")items.innerHTML=rows.map(x=>card(x,"post",x.body,x.title)).join("");
+     else if(mode==="replies")items.innerHTML=rows.map(x=>card(x,"reply",x.body)).join("");
+     else if(mode==="chat")items.innerHTML=rows.map(x=>card(x,"chat",x.body)).join("");
+     else items.innerHTML=rows.map(x=>card(x,"report",x.reason,"بلاغ: "+x.target_type+" · "+x.target_id)).join("");
+     if(!rows.length)items.innerHTML='<div class="notice">لا توجد عناصر في هذا القسم.</div>';
+     items.querySelectorAll("[data-community-action]").forEach(b=>b.onclick=async()=>{
+       const action=b.dataset.communityAction,type=b.dataset.type,id=b.dataset.id;
+       const promptText=action==="delete"?"سيتم الحذف نهائيًا ولا يمكن التراجع. هل تريد المتابعة؟":action==="hide"?"سيتم إخفاء هذا المحتوى عن الطلاب. هل تريد المتابعة؟":"سيظهر هذا المحتوى للطلاب مرة أخرى. هل تريد المتابعة؟";
+       if(!confirm(promptText))return;
+       b.disabled=true;
+       try{await api("/api/admin/community",{method:"POST",body:JSON.stringify({action,target_type:type,id})});await loadCommunity(mode,$("#communitySearch")?.value||"");}
+       catch(e){alert(e.message);b.disabled=false;}
+     });
+   }catch(e){notice.textContent=e.message;}
+ }
+
  async function renderAccessLogs(){
    currentTab="access";const panel=$("#panel");
    panel.innerHTML='<div class="section-head"><div><h2>تسجيلات الدخول وآخر ظهور</h2><p>متابعة محاولات دخول الطلاب والمسؤولين، وآخر نشاط مسجل لكل حساب.</p></div><div class="actions"><button id="refreshAccess" class="ghost">تحديث</button><button id="clearAccessLogs" class="mini danger">حذف السجل</button></div></div><div class="student-tools"><input id="accessSearch" placeholder="ابحث بالاسم أو اسم المستخدم أو الرقم التعريفي أو IP"><button id="searchAccess" class="ghost">بحث</button></div><h3>آخر ظهور للحسابات</h3><div id="activityNotice" class="notice">جارٍ تحميل آخر الظهور…</div><div class="table-wrap"><table class="students-table"><thead><tr><th>الحساب</th><th>النوع</th><th>آخر ظهور</th></tr></thead><tbody id="activityRows"></tbody></table></div><h3 style="margin-top:28px">سجل محاولات تسجيل الدخول</h3><div id="accessNotice" class="notice">جارٍ تحميل محاولات الدخول…</div><div class="table-wrap"><table class="students-table"><thead><tr><th>التاريخ والوقت</th><th>الحساب</th><th>النوع</th><th>النتيجة</th><th>عنوان IP</th></tr></thead><tbody id="accessRows"></tbody></table></div>';
@@ -333,6 +370,6 @@
  login.addEventListener("submit",async e=>{e.preventDefault();msg.textContent="جارٍ التحقق…";const f=new FormData(login);try{const r=await api("/api/admin/login",{method:"POST",body:JSON.stringify(Object.fromEntries(f))});currentTab="overview";await showDashboard(r.admin);}catch(err){msg.textContent=err.message;}});
  setup.addEventListener("submit",async e=>{e.preventDefault();msg.textContent="جارٍ إنشاء الحساب…";const f=new FormData(setup);try{const r=await api("/api/admin/setup",{method:"POST",body:JSON.stringify(Object.fromEntries(f))});await showDashboard(r.admin);}catch(err){msg.textContent=err.message;}});
  $("#logoutBtn").addEventListener("click",async()=>{try{await api("/api/admin/logout",{method:"POST",body:"{}"});}finally{location.reload();}});
- document.querySelectorAll("[data-tab]").forEach(btn=>btn.addEventListener("click",async()=>{document.querySelectorAll("[data-tab]").forEach(x=>x.classList.remove("active"));btn.classList.add("active");const tab=btn.dataset.tab;if(tab==="students")await renderStudents();else if(tab==="groups")await renderGroups();else if(tab==="honors")await renderHonors();else if(tab==="exams")await renderExams();else if(tab==="results")await renderResults();else if(tab==="admins")await renderAdmins();else if(tab==="logs")await renderLogs();else if(tab==="access")await renderAccessLogs();else if(tab==="overview"){currentTab="overview";$("#panel").innerHTML="<h2>نظرة عامة</h2><div id='stats' class='stats'></div>";await refreshStats();}}));
+ document.querySelectorAll("[data-tab]").forEach(btn=>btn.addEventListener("click",async()=>{document.querySelectorAll("[data-tab]").forEach(x=>x.classList.remove("active"));btn.classList.add("active");const tab=btn.dataset.tab;if(tab==="students")await renderStudents();else if(tab==="groups")await renderGroups();else if(tab==="honors")await renderHonors();else if(tab==="exams")await renderExams();else if(tab==="results")await renderResults();else if(tab==="admins")await renderAdmins();else if(tab==="logs")await renderLogs();else if(tab==="community")await renderCommunity();else if(tab==="access")await renderAccessLogs();else if(tab==="overview"){currentTab="overview";$("#panel").innerHTML="<h2>نظرة عامة</h2><div id='stats' class='stats'></div>";await refreshStats();}}));
  init();
 })();
