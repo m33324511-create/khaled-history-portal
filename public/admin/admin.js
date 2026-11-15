@@ -293,8 +293,18 @@
 
  async function renderAccessLogs(){
    currentTab="access";const panel=$("#panel");
-   panel.innerHTML='<div class="section-head"><div><h2>تسجيلات الدخول وآخر ظهور</h2><p>متابعة محاولات دخول الطلاب والمسؤولين، وآخر نشاط مسجل لكل حساب.</p></div><button id="refreshAccess" class="ghost">تحديث</button></div><div class="student-tools"><input id="accessSearch" placeholder="ابحث بالاسم أو اسم المستخدم أو الرقم التعريفي أو IP"><button id="searchAccess" class="ghost">بحث</button></div><h3>آخر ظهور للحسابات</h3><div id="activityNotice" class="notice">جارٍ تحميل آخر الظهور…</div><div class="table-wrap"><table class="students-table"><thead><tr><th>الحساب</th><th>النوع</th><th>آخر ظهور</th></tr></thead><tbody id="activityRows"></tbody></table></div><h3 style="margin-top:28px">سجل محاولات تسجيل الدخول</h3><div id="accessNotice" class="notice">جارٍ تحميل محاولات الدخول…</div><div class="table-wrap"><table class="students-table"><thead><tr><th>التاريخ والوقت</th><th>الحساب</th><th>النوع</th><th>النتيجة</th><th>عنوان IP</th></tr></thead><tbody id="accessRows"></tbody></table></div>';
+   panel.innerHTML='<div class="section-head"><div><h2>تسجيلات الدخول وآخر ظهور</h2><p>متابعة محاولات دخول الطلاب والمسؤولين، وآخر نشاط مسجل لكل حساب.</p></div><div class="actions"><button id="refreshAccess" class="ghost">تحديث</button><button id="clearAccessLogs" class="mini danger">حذف السجل</button></div></div><div class="student-tools"><input id="accessSearch" placeholder="ابحث بالاسم أو اسم المستخدم أو الرقم التعريفي أو IP"><button id="searchAccess" class="ghost">بحث</button></div><h3>آخر ظهور للحسابات</h3><div id="activityNotice" class="notice">جارٍ تحميل آخر الظهور…</div><div class="table-wrap"><table class="students-table"><thead><tr><th>الحساب</th><th>النوع</th><th>آخر ظهور</th></tr></thead><tbody id="activityRows"></tbody></table></div><h3 style="margin-top:28px">سجل محاولات تسجيل الدخول</h3><div id="accessNotice" class="notice">جارٍ تحميل محاولات الدخول…</div><div class="table-wrap"><table class="students-table"><thead><tr><th>التاريخ والوقت</th><th>الحساب</th><th>النوع</th><th>النتيجة</th><th>عنوان IP</th></tr></thead><tbody id="accessRows"></tbody></table></div>';
    $("#refreshAccess").onclick=()=>loadAccessLogs($("#accessSearch").value.trim());
+   $("#clearAccessLogs").onclick=async()=>{
+     if(!confirm("تحذير: سيتم حذف جميع محاولات تسجيل الدخول وسجلات آخر ظهور نهائيًا. لا يمكن التراجع عن الحذف. هل تريد المتابعة؟"))return;
+     const button=$("#clearAccessLogs");button.disabled=true;
+     try{
+       const result=await api("/api/admin/access-logs",{method:"DELETE",body:JSON.stringify({confirm:"DELETE_ACCESS_LOGS"})});
+       await loadAccessLogs($("#accessSearch").value.trim());
+       alert("تم حذف "+Number(result.deleted_count||0)+" سجل. سيبدأ تسجيل آخر ظهور من النشاط الحالي.");
+     }catch(e){alert(e.message);}
+     finally{button.disabled=false;}
+   };
    $("#searchAccess").onclick=()=>loadAccessLogs($("#accessSearch").value.trim());
    $("#accessSearch").addEventListener("keydown",e=>{if(e.key==="Enter")loadAccessLogs(e.target.value.trim());});
    await loadAccessLogs();
